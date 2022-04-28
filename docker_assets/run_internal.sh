@@ -4,7 +4,6 @@
 pushd /
 # the setup for local testing
 # see avalanchego/genesis/genesis_local.go to see default genesis
-# TODO do we need to simulate staking?
 /avalanchego/build/avalanchego \
     --network-id=local \
     --public-ip=127.0.0.1 \
