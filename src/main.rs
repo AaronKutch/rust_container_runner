@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use tokio::{net::TcpStream, time::sleep};
-use web30::{jsonrpc::client::HttpClient};
+use web30::{jsonrpc::{client::HttpClient, response::Response}, types::SyncingStatus};
 
 #[tokio::main]
 pub async fn main() {
@@ -20,7 +20,7 @@ pub async fn main() {
     }
     let rpc = HttpClient::new(rpc_url);
 
-    let methods = [
+    /*let methods = [
         // commented out are mentioned in `Web30` but are not used in the bridge
         //"accounts",
         //"chainId",
@@ -41,8 +41,9 @@ pub async fn main() {
             .request_method(&eth_method, Vec::<String>::new(), Duration::from_secs(10))
             .await;
         println!("{:?}", res);
-    }
-    let res: String = rpc
+    }*/
+
+    let res: SyncingStatus = rpc
         .request_method("eth_syncing", Vec::<String>::new(), Duration::from_secs(10))
         .await
         .unwrap();
