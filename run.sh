@@ -42,6 +42,8 @@ PATH=$PATH:$HOME/.cargo/bin CROSS_COMPILE=$CROSS_COMPILE cargo build --release -
 # because the binaries are put in different directories depending on $RCR_TARGET, copy them to a common place
 cp $REPOFOLDER/target/$RCR_TARGET/release/rust_container_runner $DOCKERFOLDER/internal_runner
 
+docker build -t rust_test_runner_container $PLATFORM_CMD .
+
 # Remove existing container instance
 set +e
 docker rm -f rust_test_runner_container

@@ -5,8 +5,11 @@ use web30::{jsonrpc::client::HttpClient};
 
 #[tokio::main]
 pub async fn main() {
-    let rpc_host = "127.0.0.1:18545";
-    let rpc_url = "http://localhost:18545";
+    let rpc_host = "127.0.0.1:8545";
+    let rpc_url = "http://localhost:8545";
+    //let rpc_host = "127.0.0.1:18545";
+    //let rpc_url = "http://localhost:18545";
+    //let rpc_host = "127.0.0.1:9650";
     //let rpc_url = "http://localhost:9650/ext/bc/C/rpc";
     // wait for the server to be ready
     for _ in 0..120 {
@@ -39,11 +42,11 @@ pub async fn main() {
             .await;
         println!("{:?}", res);
     }
-    /*let res: SyncingStatus = rpc
+    let res: String = rpc
         .request_method("eth_syncing", Vec::<String>::new(), Duration::from_secs(10))
         .await
         .unwrap();
-    dbg!(res);*/
+    dbg!(res);
     //let web3 = Web3::new(rpc_url, Duration::from_secs(60));
     // calls "eth_syncing" with empty parameters
     //dbg!(web3.eth_syncing().await.unwrap());
