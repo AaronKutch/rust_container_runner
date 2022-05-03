@@ -1,14 +1,17 @@
 use std::time::Duration;
 
 use tokio::{net::TcpStream, time::sleep};
-use web30::{jsonrpc::{client::HttpClient, response::Response}, types::SyncingStatus};
+use web30::{jsonrpc::{client::HttpClient, error::Web3Error}, types::SyncingStatus};
 
 #[tokio::main]
 pub async fn main() {
-    let rpc_host = "127.0.0.1:8545";
-    let rpc_url = "http://localhost:8545";
-    //let rpc_host = "127.0.0.1:18545";
-    //let rpc_url = "http://localhost:18545";
+    // geth
+    //let rpc_host = "127.0.0.1:8545";
+    //let rpc_url = "http://localhost:8545";
+    // go-opera (Fantom)
+    let rpc_host = "127.0.0.1:18545";
+    let rpc_url = "http://localhost:18545";
+    // avalanchego
     //let rpc_host = "127.0.0.1:9650";
     //let rpc_url = "http://localhost:9650/ext/bc/C/rpc";
     // wait for the server to be ready
@@ -20,7 +23,7 @@ pub async fn main() {
     }
     let rpc = HttpClient::new(rpc_url);
 
-    /*let methods = [
+    let methods = [
         // commented out are mentioned in `Web30` but are not used in the bridge
         //"accounts",
         //"chainId",
@@ -37,11 +40,11 @@ pub async fn main() {
         //"blockNumber",
     ];
     for eth_method in methods.into_iter().map(|s| "eth_".to_owned() + s) {
-        let res: Result<String, _> = rpc
+        let res: Result<SyncingStatus, Web3Error> = rpc
             .request_method(&eth_method, Vec::<String>::new(), Duration::from_secs(10))
             .await;
-        println!("{:?}", res);
-    }*/
+        println!("{} => {:?}", eth_method, res);
+    }
 
     let res: SyncingStatus = rpc
         .request_method("eth_syncing", Vec::<String>::new(), Duration::from_secs(10))
