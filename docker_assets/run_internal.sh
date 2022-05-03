@@ -3,7 +3,7 @@
 # so that database related folders are not spawning in the scripts folder
 pushd /
 
-geth --identity "GravityTestnet" --nodiscover \
+/rust_container_runner/docker_assets/geth --identity "GravityTestnet" --nodiscover \
     --networkid 15 \
     --mine \
     --http \
