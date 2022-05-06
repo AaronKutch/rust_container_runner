@@ -9,11 +9,11 @@ pub async fn main() {
     //let rpc_host = "127.0.0.1:8545";
     //let rpc_url = "http://localhost:8545";
     // go-opera (Fantom)
-    let rpc_host = "127.0.0.1:18545";
-    let rpc_url = "http://localhost:18545";
+    //let rpc_host = "127.0.0.1:18545";
+    //let rpc_url = "http://localhost:18545";
     // avalanchego
-    //let rpc_host = "127.0.0.1:9650";
-    //let rpc_url = "http://localhost:9650/ext/bc/C/rpc";
+    let rpc_host = "127.0.0.1:9650";
+    let rpc_url = "http://localhost:9650/ext/bc/C/rpc";
     // wait for the server to be ready
     for _ in 0..120 {
         if TcpStream::connect(rpc_host).await.is_ok() {

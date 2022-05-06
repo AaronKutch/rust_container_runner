@@ -5,4 +5,4 @@ RUN dnf install -y git make gcc gcc-c++ which iproute iputils procps-ng vim-mini
 #RUN cd /geth && tar -xvf * && mv /geth/**/geth /usr/bin/geth
 
 # Use COPY from an image to take advantage of caching
-#COPY --from=avaplatform/avalanchego:v1.7.11-rc.0 /avalanchego/ /avalanchego/
+COPY --from=avaplatform/avalanchego:v1.7.11-rc.0 /avalanchego/ /avalanchego/
