@@ -16,12 +16,12 @@ pushd /
 #    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE &> /rust_container_runner/docker_assets/geth.log &
 
 # the setup for local testing
-# see avalanchego/genesis/genesis_local.go to see default genesis
 avalanchego \
+    --genesis="/rust_container_runner/docker_assets/ETHGenesis.json" \
     --build-dir="/avalanchego/build/" \
-    --network-id=local \
+    --network-id=15 \
     --public-ip=127.0.0.1 \
-    --http-port=9650 \
+    --http-port=8545 \
     --db-type=memdb \
     --staking-enabled=false &> /rust_container_runner/docker_assets/avalanchego.log &
 
