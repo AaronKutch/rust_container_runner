@@ -77,8 +77,19 @@ pub async fn main() {
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
     // On `go-opera` blocks are not produced unless there are transactions
-    // happening, need to wait some
-    sleep(Duration::from_secs(10)).await;
+    // happening, wait via waiting for errors to stop instead
+    for _ in 0..100 {
+        if web3
+            .eth_get_balance(
+                EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap(),
+            )
+            .await
+            .is_ok()
+        {
+            break
+        }
+        sleep(Duration::from_secs(1)).await;
+    }
     //web3.wait_for_next_block(Duration::from_secs(120))
     //    .await
     //    .unwrap();
@@ -88,7 +99,28 @@ pub async fn main() {
     //0x163F5F0F9A621D72FEDD85FFCA3D08D131AB4E812181E0D30FFD1C885D20AAC7
     //0x239fA7623354eC26520dE878B52f13Fe84b06971
 
-    for _ in 0..10 {
+    // make sure the original genesis account sends more to the new one than what
+    // the new one uses (or else there is an insufficient funds error because of
+    // gas)
+    let (amount, destinations) = if *MINER_PRIVATE_KEY
+        == "0x163F5F0F9A621D72FEDD85FFCA3D08D131AB4E812181E0D30FFD1C885D20AAC7"
+            .to_owned()
+            .parse()
+            .unwrap()
+    {
+        (u256!(900000000000000000000000000), [EthAddress::from_str(
+            "0xBf660843528035a5A4921534E156a27e64B231fE",
+        )
+        .unwrap()])
+    } else {
+        // send back to original account in second run
+        (u256!(100000000000000000000000000), [EthAddress::from_str(
+            "0x239fA7623354eC26520dE878B52f13Fe84b06971",
+        )
+        .unwrap()])
+    };
+
+    for _ in 0..1 {
         dbg!(
             web3.eth_get_balance(
                 EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
@@ -101,13 +133,21 @@ pub async fn main() {
             )
             .await
         );
-        send_eth_bulk(
-            u256!(900000000000000000000000000),
-            &[EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()],
-            &web3,
-        )
-        .await;
+        dbg!(amount, destinations);
+        send_eth_bulk(amount, &destinations, &web3).await;
     }
+    dbg!(
+        web3.eth_get_balance(
+            EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
+        )
+        .await
+    );
+    dbg!(
+        web3.eth_get_balance(
+            EthAddress::from_str("0x239fA7623354eC26520dE878B52f13Fe84b06971").unwrap()
+        )
+        .await
+    );
 }
 
 async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {

@@ -29,10 +29,12 @@ fi
 
 VOLUME_ARGS="-v ${REPOFOLDER}:/rust_container_runner"
 
+set +u
 REPLICATED_VARS=""
 if [[ -n "${MINER_PRIVATE_KEY}" ]]; then
-   REPLICATED_VARS=REPLICATED_VARS:"--env MINER_PRIVATE_KEY=${MINER_PRIVATE_KEY} "
+   REPLICATED_VARS="${REPLICATED_VARS} --env MINER_PRIVATE_KEY=${MINER_PRIVATE_KEY}"
 fi
+set -u
 
 RUN_ARGS=""
 if [[ "${TEST_TYPE:-}" == "NO_SCRIPTS" ]]; then

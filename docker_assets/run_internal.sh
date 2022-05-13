@@ -25,9 +25,9 @@ pushd /
 #    --staking-enabled=false &> /rust_container_runner/docker_assets/avalanchego.log &
 
 # Run
-# `MINER_PRIVATE_KEY=0x163F5F0F9A621D72FEDD85FFCA3D08D131AB4E812181E0D30FFD1C885D20AAC7 bash run.sh NO_SCRIPTS`
+# `MINER_PRIVATE_KEY="0x163F5F0F9A621D72FEDD85FFCA3D08D131AB4E812181E0D30FFD1C885D20AAC7" bash run.sh NO_SCRIPTS`
 # and get a command prompt to the running container. In the container run
-# `bash /rust_container_runner/docker_assets/run_internal.sh` and wait for a transaction
+# `bash /rust_container_runner/docker_assets/run_internal.sh` and wait for a transaction in opera.log.
 # Then in the container `pkill opera` and run
 # `opera --datadir /opera_datadir/ export genesis /rust_container_runner/docker_assets/test_genesis.g --export.evm.mode=ext-mpt`
 # which will convert the state of the testchain up to that point into a new genesis that we
