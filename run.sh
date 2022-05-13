@@ -29,6 +29,11 @@ fi
 
 VOLUME_ARGS="-v ${REPOFOLDER}:/rust_container_runner"
 
+REPLICATED_VARS=""
+if [[ -n "${MINER_PRIVATE_KEY}" ]]; then
+   REPLICATED_VARS=REPLICATED_VARS:"--env MINER_PRIVATE_KEY=${MINER_PRIVATE_KEY} "
+fi
+
 RUN_ARGS=""
 if [[ "${TEST_TYPE:-}" == "NO_SCRIPTS" ]]; then
    echo "Running container instance without starting scripts"
@@ -50,4 +55,4 @@ docker rm -f rust_test_runner_container
 set -e
 
 # Run new test container instance
-docker run --name rust_test_runner_container $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t gravity-base $RUN_ARGS
+docker run --name rust_test_runner_container $VOLUME_ARGS $REPLICATED_VARS $PLATFORM_CMD --cap-add=NET_ADMIN -t gravity-base $RUN_ARGS

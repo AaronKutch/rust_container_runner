@@ -1,3 +1,5 @@
+#![allow(unused_must_use)]
+
 use std::{env, str::FromStr, time::Duration};
 
 use clarity::{
@@ -13,13 +15,12 @@ use web30::{
 };
 
 lazy_static! {
-    // this key is the private key for the public key defined in tests/assets/ETHGenesis.json
-    // where the full node / miner sends its rewards. Therefore it's always going
-    // to have a lot of ETH to pay for things like contract deployments
-    static ref MINER_PRIVATE_KEY: EthPrivateKey = env::var("MINER_PRIVATE_KEY").unwrap_or_else(|_|
-        "0x163F5F0F9A621D72FEDD85FFCA3D08D131AB4E812181E0D30FFD1C885D20AAC7".to_owned()
-            ).parse()
-            .unwrap();
+    static ref MINER_PRIVATE_KEY: EthPrivateKey = env::var("MINER_PRIVATE_KEY")
+        .unwrap_or_else(
+            |_| "0xb1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7".to_owned()
+        )
+        .parse()
+        .unwrap();
     static ref MINER_ADDRESS: EthAddress = MINER_PRIVATE_KEY.to_address();
 }
 pub const HIGH_GAS_PRICE: Uint256 = u256!(1_000_000_000);
@@ -42,8 +43,8 @@ pub async fn main() {
         }
         sleep(Duration::from_millis(500)).await
     }
-    let rpc = HttpClient::new(rpc_url);
 
+    /*let rpc = HttpClient::new(rpc_url);
     let methods = [
         // commented out are mentioned in `Web30` but are not used in the bridge
         //"accounts",
@@ -71,45 +72,42 @@ pub async fn main() {
         .request_method("eth_syncing", Vec::<String>::new(), Duration::from_secs(10))
         .await
         .unwrap();
-    dbg!(res);
+    dbg!(res);*/
+
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
-    web3.wait_for_next_block(Duration::from_secs(120))
-        .await
-        .unwrap();
+
+    // On `go-opera` blocks are not produced unless there are transactions
+    // happening, need to wait some
+    sleep(Duration::from_secs(10)).await;
+    //web3.wait_for_next_block(Duration::from_secs(120))
+    //    .await
+    //    .unwrap();
+
     //0xb1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7
     //0xBf660843528035a5A4921534E156a27e64B231fE
     //0x163F5F0F9A621D72FEDD85FFCA3D08D131AB4E812181E0D30FFD1C885D20AAC7
     //0x239fA7623354eC26520dE878B52f13Fe84b06971
-    dbg!(
-        web3.eth_get_balance(
-            EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
+
+    for _ in 0..10 {
+        dbg!(
+            web3.eth_get_balance(
+                EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
+            )
+            .await
+        );
+        dbg!(
+            web3.eth_get_balance(
+                EthAddress::from_str("0x239fA7623354eC26520dE878B52f13Fe84b06971").unwrap()
+            )
+            .await
+        );
+        send_eth_bulk(
+            u256!(900000000000000000000000000),
+            &[EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()],
+            &web3,
         )
-        .await
-    );
-    dbg!(
-        web3.eth_get_balance(
-            EthAddress::from_str("0x239fA7623354eC26520dE878B52f13Fe84b06971").unwrap()
-        )
-        .await
-    );
-    send_eth_bulk(
-        u256!(900000000000000000000000000),
-        &[EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()],
-        &web3,
-    )
-    .await;
-    dbg!(
-        web3.eth_get_balance(
-            EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
-        )
-        .await
-    );
-    dbg!(
-        web3.eth_get_balance(
-            EthAddress::from_str("0x239fA7623354eC26520dE878B52f13Fe84b06971").unwrap()
-        )
-        .await
-    );
+        .await;
+    }
 }
 
 async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {
