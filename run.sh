@@ -57,4 +57,4 @@ docker rm -f rust_test_runner_container
 set -e
 
 # Run new test container instance
-docker run --name rust_test_runner_container $VOLUME_ARGS $REPLICATED_VARS $PLATFORM_CMD --cap-add=NET_ADMIN -t gravity-base $RUN_ARGS
+docker run --name rust_test_runner_container $VOLUME_ARGS $REPLICATED_VARS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS

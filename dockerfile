@@ -7,5 +7,5 @@ RUN dnf install -y git make gcc gcc-c++ which iproute iputils procps-ng vim-mini
 # Use COPY from an image to take advantage of caching
 #COPY --from=avaplatform/avalanchego:v1.7.11-rc.0 /avalanchego/ /avalanchego/
 
-ADD https://github.com/AaronKutch/go-opera/releases/download/onomy_release_94738741/opera.tar.gz /opera/
+ADD https://github.com/AaronKutch/go-opera/releases/download/onomy_release_0038cf8/opera.tar.gz /opera/
 RUN cd /opera && tar -xvf * && mv /opera/opera /usr/bin/opera
