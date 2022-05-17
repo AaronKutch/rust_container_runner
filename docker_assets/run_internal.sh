@@ -15,7 +15,15 @@ pushd /
 #    --verbosity=5 \
 #    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE &> /rust_container_runner/docker_assets/geth.log &
 
-    # init the genesis block
+# Init the genesis block. The genesis block was made by copying `tests/bor/testdata/genesis.json`
+# from the `bor` repo, editing "chainId" to 15, editing "londonBlock" and "jaipurBlock" to 0,
+# adding an allocation
+# `"0xBf660843528035a5A4921534E156a27e64B231fE": {
+#     "balance": "0x1337000000000000000000"
+# }`
+# To the end of the "alloc" block, and search+replace `71562b71999873DB5b286dF957af199Ec94617F7`
+# with `Bf660843528035a5A4921534E156a27e64B231fE` in a large block of hex so that our account
+# can be a block producer
 bor --identity "GravityTestnet" \
     --nodiscover --networkid 15 init /rust_container_runner/docker_assets/bor_genesis.json
 
