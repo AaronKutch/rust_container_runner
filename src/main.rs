@@ -18,12 +18,12 @@ lazy_static! {
     // where the full node / miner sends its rewards. Therefore it's always going
     // to have a lot of ETH to pay for things like contract deployments
     static ref MINER_PRIVATE_KEY: EthPrivateKey = env::var("MINER_PRIVATE_KEY").unwrap_or_else(|_|
-        "0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027".to_owned()
+        "0xb1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7".to_owned()
             ).parse()
             .unwrap();
     static ref MINER_ADDRESS: EthAddress = MINER_PRIVATE_KEY.to_address();
 }
-pub const HIGH_GAS_PRICE: Uint256 = u256!(1_000_000_000);
+pub const HIGH_GAS_PRICE: Uint256 = u256!(30000000000);
 
 #[tokio::main]
 pub async fn main() {
@@ -33,8 +33,8 @@ pub async fn main() {
     //let rpc_host = "127.0.0.1:8545";
     //let rpc_url = "http://localhost:8545";
     // avalanchego
-    let rpc_host = "127.0.0.1:9650";
-    let rpc_url = "http://localhost:9650/ext/bc/C/rpc";
+    let rpc_host = "127.0.0.1:8545";
+    let rpc_url = "http://localhost:8545/ext/bc/C/rpc";
     // go-opera (Fantom)
     //let rpc_host = "127.0.0.1:18545";
     //let rpc_url = "http://localhost:18545";
@@ -77,15 +77,11 @@ pub async fn main() {
 
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
-    sleep(Duration::from_secs(5)).await;
+    //sleep(Duration::from_secs(5)).await;
     //web3.wait_for_next_block(Duration::from_secs(120))
     //    .await
     //    .unwrap();
 
-    //0xb1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7
-    //0xBf660843528035a5A4921534E156a27e64B231fE
-    //0x163F5F0F9A621D72FEDD85FFCA3D08D131AB4E812181E0D30FFD1C885D20AAC7
-    //0x239fA7623354eC26520dE878B52f13Fe84b06971
     dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
@@ -94,16 +90,22 @@ pub async fn main() {
     );
     dbg!(
         web3.eth_get_balance(
-            EthAddress::from_str("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC").unwrap()
+            EthAddress::from_str("0xb3d82b1367d362de99ab59a658165aff520cbd4d").unwrap()
         )
         .await
     );
+    dbg!("sending to eth");
     send_eth_bulk(
-        u256!(900000000000000000000000000),
-        &[EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()],
+        u256!(10000000000000000000000000),
+        &[EthAddress::from_str("0xb3d82b1367d362de99ab59a658165aff520cbd4d").unwrap()],
         &web3,
     )
     .await;
+    dbg!("done sending to eth");
+    web3.wait_for_next_block(Duration::from_secs(120))
+        .await
+        .unwrap();
+    dbg!("done waiting for next block");
     dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
@@ -112,7 +114,7 @@ pub async fn main() {
     );
     dbg!(
         web3.eth_get_balance(
-            EthAddress::from_str("0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC").unwrap()
+            EthAddress::from_str("0xb3d82b1367d362de99ab59a658165aff520cbd4d").unwrap()
         )
         .await
     );
@@ -124,7 +126,9 @@ async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {
         let wait = web3.wait_for_transaction(txid.unwrap(), Duration::from_secs(30), None);
         wait_for_txid.push(wait);
     }
+    dbg!("waiting for txn");
     join_all(wait_for_txid).await;
+    dbg!("done waiting for txn");
 }
 
 pub async fn send_eth_bulk(amount: Uint256, destinations: &[EthAddress], web3: &Web3) {
