@@ -15,15 +15,32 @@ pushd /
 #    --verbosity=5 \
 #    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE &> /rust_container_runner/docker_assets/geth.log &
 
+    # init the genesis block
+bor --identity "GravityTestnet" \
+    --nodiscover \
+    --networkid 15 init /rust_container_runner/docker_assets/bor_genesis.json
+
+bor --identity "GravityTestnet" --nodiscover \
+    --networkid 15 \
+    --mine \
+    --http \
+    --http.addr="0.0.0.0" \
+    --http.vhosts="*" \
+    --http.corsdomain="*" \
+    --miner.threads=1 \
+    --nousb \
+    --verbosity=5 \
+    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE &> /rust_container_runner/docker_assets/bor.log &
+
 # the setup for local testing
-avalanchego \
-    --genesis="/rust_container_runner/docker_assets/ETHGenesis.json" \
-    --build-dir="/avalanchego/build/" \
-    --network-id=15 \
-    --public-ip=127.0.0.1 \
-    --http-port=8545 \
-    --db-type=memdb \
-    --staking-enabled=false &> /rust_container_runner/docker_assets/avalanchego.log &
+#avalanchego \
+#    --genesis="/rust_container_runner/docker_assets/avalanchego_genesis.json" \
+#    --build-dir="/avalanchego/build/" \
+#    --network-id=15 \
+#    --public-ip=127.0.0.1 \
+#    --http-port=8545 \
+#    --db-type=memdb \
+#    --staking-enabled=false &> /rust_container_runner/docker_assets/avalanchego.log &
 
 # To make a custom genesis file for `go-opera`, comment out the normal `opera`
 # command below and change `MINER_PRIVATE_KEY`
@@ -41,7 +58,7 @@ avalanchego \
 #    --nodiscover \
 #    --http \
 #    --http.addr="localhost" \
-#    --http.port="18545" \
+#    --http.port="8545" \
 #    --http.api="eth,debug,net,admin,web3,personal,txpool,ftm,dag" \
 #    --datadir="/opera_datadir" &> /rust_container_runner/docker_assets/opera.log &
 
@@ -51,7 +68,7 @@ avalanchego \
 #    --nodiscover \
 #    --http \
 #    --http.addr="localhost" \
-#    --http.port="18545" \
+#    --http.port="8545" \
 #    --http.api="eth,debug,net,admin,web3,personal,txpool,ftm,dag" \
 #    --datadir="/opera_datadir" &> /rust_container_runner/docker_assets/opera.log &
 

@@ -29,15 +29,12 @@ pub const HIGH_GAS_PRICE: Uint256 = u256!(30000000000);
 pub async fn main() {
     dbg!(*MINER_PRIVATE_KEY);
     dbg!(*MINER_ADDRESS);
-    // geth
-    //let rpc_host = "127.0.0.1:8545";
-    //let rpc_url = "http://localhost:8545";
-    // avalanchego
+    // geth, bor, and go-opera
     let rpc_host = "127.0.0.1:8545";
-    let rpc_url = "http://localhost:8545/ext/bc/C/rpc";
-    // go-opera (Fantom)
-    //let rpc_host = "127.0.0.1:18545";
-    //let rpc_url = "http://localhost:18545";
+    let rpc_url = "http://localhost:8545";
+    // avalanchego
+    //let rpc_host = "127.0.0.1:8545";
+    //let rpc_url = "http://localhost:8545/ext/bc/C/rpc";
     // wait for the server to be ready
     for _ in 0..120 {
         if TcpStream::connect(rpc_host).await.is_ok() {
@@ -78,9 +75,9 @@ pub async fn main() {
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
     //sleep(Duration::from_secs(5)).await;
-    //web3.wait_for_next_block(Duration::from_secs(120))
-    //    .await
-    //    .unwrap();
+    web3.wait_for_next_block(Duration::from_secs(120))
+        .await
+        .unwrap();
 
     dbg!(
         web3.eth_get_balance(

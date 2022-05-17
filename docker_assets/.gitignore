@@ -1,4 +1,5 @@
 /*
 !.gitignore
-!ETHGenesis.json
 !run_internal.sh
+!bor_genesis.json
+!avalanchego_genesis.json
