@@ -1,5 +1,7 @@
 /*
 !.gitignore
+!dev_keystore/
+!dev_password.txt
 !run_internal.sh
 !bor_genesis.json
 !avalanchego_genesis.json
