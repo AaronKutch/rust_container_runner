@@ -38,7 +38,7 @@ bor --identity "GravityTestnet" \
     --verbosity=5 \
     --mine \
     --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE \
-    --unlock="0xBf660843528035a5A4921534E156a27e64B231fE" \
+    --unlock=0xBf660843528035a5A4921534E156a27e64B231fE \
     --allow-insecure-unlock \
     --keystore="/rust_container_runner/docker_assets/dev_keystore" \
     --password="/rust_container_runner/docker_assets/dev_password.txt" \
