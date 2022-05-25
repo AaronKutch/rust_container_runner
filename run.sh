@@ -64,19 +64,26 @@ set -e
 # insure everything is self contained
 docker network create --internal testnet
 
-DOCKER_ID_TCP=$(docker create --rm --network=testnet --hostname="host_tcp" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_TCP})
-#DOCKER_ID_SOLANA=$(docker create --network=testnet --hostname="host_solana" ${PLATFORM_CMD} --entrypoint="/opt/solana/bin/solana-run-neon.sh" ${EVM_LOADER_IMAGE} ${RUN_ARGS_SOLANA})
+#DOCKER_ID_TCP=$(docker create --rm --network=testnet --hostname="host_tcp" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_TCP})
+DOCKER_ID_SOLANA=$(docker create --network=testnet --hostname="host_solana" ${PLATFORM_CMD} --env="RUST_LOG=solana_runtime::system_instruction_processor=info,solana_runtime::message_processor=info,solana_bpf_loader=info,solana_rbpf=info" --env="SOLANA_URL=http://host_solana:8899" --entrypoint="/opt/solana/bin/solana-run-neon.sh" ${EVM_LOADER_IMAGE} ${RUN_ARGS_SOLANA})
+DOCKER_ID_PROXY=$(docker create --network=testnet --hostname="host_proxy" ${PLATFORM_CMD} --env="SOLANA_URL=http://host_solana:8899" ${EVM_LOADER_IMAGE} ${RUN_ARGS_SOLANA})
 DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_ETH_RPC})
 
 # delayed start to wait for everything to be pulled and created
-docker start $DOCKER_ID_TCP
+#docker start $DOCKER_ID_TCP
 # there is unfortunately a small period of time where stdout could be lost, but there seems to be no
 # way around this, redirecting anywhere else gets the wrong stdout
-docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
+#docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
+docker start $DOCKER_ID_SOLANA
+docker attach $DOCKER_ID_SOLANA &> $DOCKERFOLDER/host_solana.log &
+docker start $DOCKER_ID_PROXY
+docker attach $DOCKER_ID_PROXY &> $DOCKERFOLDER/host_proxy.log &
 docker start $DOCKER_ID_ETH_RPC
 docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
 
 read -p "Press Return to Close..."
 
-docker rm -f $DOCKER_ID_TCP
+#docker rm -f $DOCKER_ID_TCP
+docker rm -f $DOCKER_ID_SOLANA
+docker rm -f $DOCKER_ID_PROXY
 docker rm -f $DOCKER_ID_ETH_RPC
