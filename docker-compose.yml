@@ -1,9 +1,5 @@
 version: "3"
 
-networks:
-  default:
-    name: testnet
-
 services:
   # solana:
   #   container_name: solana
@@ -58,5 +54,17 @@ services:
       - ${VOLUME_ARGS}
     command: ${RUN_ARGS}
     depends_on:
-      solana:
+      hello:
         condition: service_healthy
+
+  hello:
+    image: gravity-base
+    volumes:
+      - ${VOLUME_ARGS}
+    healthcheck:
+      test: [ "CMD", "echo" ]
+      interval: 3s
+      timeout: 2s
+      retries: 3
+      start_period: 3s
+    command: ${RUN_ARGS_TCP}

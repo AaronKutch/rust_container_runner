@@ -92,4 +92,4 @@ pushd /
 #    --http.api="eth,debug,net,admin,web3,personal,txpool,ftm,dag" \
 #    --datadir="/opera_datadir" &> /rust_container_runner/docker_assets/opera.log &
 
-RUST_LOG="TRACE" RUST_BACKTRACE=full /rust_container_runner/docker_assets/internal_runner
+RUST_LOG="TRACE" RUST_BACKTRACE=full /rust_container_runner/docker_assets/eth_rpc

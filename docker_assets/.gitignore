@@ -2,6 +2,7 @@
 !.gitignore
 !dev_keystore/
 !dev_password.txt
-!run_internal.sh
+!run_eth_rpc.sh
+!run_tcp.sh
 !bor_genesis.json
 !avalanchego_genesis.json

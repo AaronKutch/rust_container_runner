@@ -6,7 +6,6 @@ use clarity::{
 };
 use futures::future::join_all;
 use lazy_static::lazy_static;
-use tokio::{net::TcpStream, time::sleep};
 use web30::{
     client::Web3,
     jsonrpc::{client::HttpClient, error::Web3Error},
@@ -30,18 +29,21 @@ pub async fn main() {
     dbg!(*MINER_PRIVATE_KEY);
     dbg!(*MINER_ADDRESS);
     // geth, bor, and go-opera
-    let rpc_host = "127.0.0.1:8545";
-    let rpc_url = "http://localhost:8545";
+    //let rpc_host = "127.0.0.1:8545";
+    //let rpc_url = "http://localhost:8545";
     // avalanchego
     //let rpc_host = "127.0.0.1:8545";
     //let rpc_url = "http://localhost:8545/ext/bc/C/rpc";
+    //let rpc_host = "127.0.0.1:8899";
+    // neon
+    let rpc_url = &env::var("ETH_NODE").unwrap_or_else(|_| "http://hello:8899".to_owned());
     // wait for the server to be ready
-    for _ in 0..120 {
+    /*for _ in 0..40 {
         if TcpStream::connect(rpc_host).await.is_ok() {
             break
         }
         sleep(Duration::from_millis(500)).await
-    }
+    }*/
     let rpc = HttpClient::new(rpc_url);
 
     let methods = [
@@ -73,6 +75,9 @@ pub async fn main() {
     dbg!(res);
 
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
+
+    dbg!(web3.eth_syncing().await);
+    dbg!(web3.eth_synced_block_number().await);
 
     //sleep(Duration::from_secs(5)).await;
     web3.wait_for_next_block(Duration::from_secs(120))
