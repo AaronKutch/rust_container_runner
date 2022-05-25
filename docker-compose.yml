@@ -45,20 +45,17 @@ services:
   #    solana:
   #      condition: service_healthy
 
-  gravity-base:
-    image: gravity-base
-    environment:
-      ETH_NODE: ${SOLANA_URL}
-      #USE_LOCAL_ARTIFACTS: ${USE_LOCAL_ARTIFACTS}
+  eth_rpc_container:
+    image: rust_test_runner_image
     volumes:
       - ${VOLUME_ARGS}
     command: ${RUN_ARGS}
     depends_on:
-      hello:
+      tcp_container:
         condition: service_healthy
 
-  hello:
-    image: gravity-base
+  tcp_container:
+    image: rust_test_runner_image
     volumes:
       - ${VOLUME_ARGS}
     healthcheck:

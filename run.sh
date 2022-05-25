@@ -48,9 +48,12 @@ cp $REPOFOLDER/target/$RCR_TARGET/release/tcp $DOCKERFOLDER/tcp
 EVM_LOADER_IMAGE="neonlabsorg/evm_loader:d10ea83c02257b885d71fb3d62d64f9d28f4507d"
 PROXY_IMAGE="neonlabsorg/proxy:5fe50d3b6d050fc6c44c6b0e5097de89ea3da2c5"
 # there are scripts still hardcoded with 8899
-SOLANA_URL="http://localhost:8899"
+SOLANA_URL="http://solana:8899"
 
 EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE SOLANA_URL=$SOLANA_URL RUN_ARGS=$RUN_ARGS RUN_ARGS_TCP=$RUN_ARGS_TCP VOLUME_ARGS=$VOLUME_ARGS docker-compose down
+
+docker rm -f rust_test_runner_image
+docker build -t rust_test_runner_image $PLATFORM_CMD .
 
 set +e
 EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE SOLANA_URL=$SOLANA_URL RUN_ARGS=$RUN_ARGS RUN_ARGS_TCP=$RUN_ARGS_TCP VOLUME_ARGS=$VOLUME_ARGS docker-compose up -d

@@ -1,6 +1,6 @@
 // A basic TCP listener for the sole purpose of debugging connectivity issues
 
-use std::{net::TcpListener, time::Duration, thread::sleep};
+use std::net::TcpListener;
 
 fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("0.0.0.0:8899")?;
