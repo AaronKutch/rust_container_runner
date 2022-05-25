@@ -7,3 +7,4 @@
 !bor_genesis.json
 !avalanchego_genesis.json
 !solana-run-neon.sh
+!neon_proxy.sh

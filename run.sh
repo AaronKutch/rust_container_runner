@@ -45,6 +45,7 @@ PATH=$PATH:$HOME/.cargo/bin CROSS_COMPILE=$CROSS_COMPILE cargo build --release -
 cp $REPOFOLDER/target/$RCR_TARGET/release/eth_rpc $DOCKERFOLDER/eth_rpc
 cp $REPOFOLDER/target/$RCR_TARGET/release/tcp $DOCKERFOLDER/tcp
 
+DB_IMAGE="postgres:14.0"
 EVM_LOADER_IMAGE="neonlabsorg/evm_loader:d10ea83c02257b885d71fb3d62d64f9d28f4507d"
 PROXY_IMAGE="neonlabsorg/proxy:5fe50d3b6d050fc6c44c6b0e5097de89ea3da2c5"
 
@@ -61,8 +62,14 @@ set -e
 docker network create --internal testnet
 
 #DOCKER_ID_TCP=$(docker create --rm --network=testnet --hostname="host_tcp" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_TCP})
+
+# note: do not use "trust" method in production
+DOCKER_ID_DB=$(docker create --network=testnet --hostname="host_db" ${PLATFORM_CMD} --env="POSTGRES_HOST_AUTH_METHOD=trust" --env="POSTGRES_DB=host_db" --env="POSTGRES_USER=neon-proxy" --env="POSTGRES_PASSWORD=neon-proxy-pass" ${DB_IMAGE})
+
 DOCKER_ID_SOLANA=$(docker create --network=testnet --hostname="host_solana" ${PLATFORM_CMD} --env="RUST_LOG=solana_runtime::system_instruction_processor=info,solana_runtime::message_processor=info,solana_bpf_loader=info,solana_rbpf=info" --env="SOLANA_URL=http://host_solana:8899" --workdir="/" ${VOLUME_ARGS} ${EVM_LOADER_IMAGE} bash /rust_container_runner/docker_assets/solana-run-neon.sh)
+
 DOCKER_ID_PROXY=$(docker create --network=testnet --hostname="host_proxy" ${PLATFORM_CMD} --env="SOLANA_URL=http://host_solana:8899" --env="EVM_LOADER=53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io" --entrypoint="" ${VOLUME_ARGS} ${PROXY_IMAGE} bash /rust_container_runner/docker_assets/neon_proxy.sh)
+
 DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_ETH_RPC})
 
 # delayed start to wait for everything to be pulled and created
@@ -70,6 +77,8 @@ DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" ${
 # there is unfortunately a small period of time where stdout could be lost, but there seems to be no
 # way around this, redirecting anywhere else gets the wrong stdout
 #docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
+docker start $DOCKER_ID_DB
+docker attach $DOCKER_ID_DB &> $DOCKERFOLDER/host_db.log &
 docker start $DOCKER_ID_SOLANA
 docker attach $DOCKER_ID_SOLANA &> $DOCKERFOLDER/host_solana.log &
 sleep 12
@@ -82,6 +91,7 @@ docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
 read -p "Press Return to Close..."
 
 #docker rm -f $DOCKER_ID_TCP
+docker rm -f $DOCKER_ID_DB
 docker rm -f $DOCKER_ID_SOLANA
 docker rm -f $DOCKER_ID_PROXY
 docker rm -f $DOCKER_ID_ETH_RPC
