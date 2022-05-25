@@ -47,13 +47,9 @@ cp $REPOFOLDER/target/$RCR_TARGET/release/tcp $DOCKERFOLDER/tcp
 
 EVM_LOADER_IMAGE="neonlabsorg/evm_loader:d10ea83c02257b885d71fb3d62d64f9d28f4507d"
 PROXY_IMAGE="neonlabsorg/proxy:5fe50d3b6d050fc6c44c6b0e5097de89ea3da2c5"
-# there are scripts still hardcoded with 8899
-#SOLANA_URL="http://host_solana:8899"
 
-#RUN_ARGS_SOLANA="/opt/solana/bin/solana-run-neon.sh"
-
-#docker rm -f rust_test_runner_image
-#docker build -t rust_test_runner_image $PLATFORM_CMD .
+docker rm -f rust_test_runner_image
+docker build -t rust_test_runner_image $PLATFORM_CMD .
 
 # docker-compose has too many problems with conditionally propogating env variables to it and
 # subcommands, so we manually compose a network
@@ -66,7 +62,7 @@ docker network create --internal testnet
 
 #DOCKER_ID_TCP=$(docker create --rm --network=testnet --hostname="host_tcp" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_TCP})
 DOCKER_ID_SOLANA=$(docker create --network=testnet --hostname="host_solana" ${PLATFORM_CMD} --env="RUST_LOG=solana_runtime::system_instruction_processor=info,solana_runtime::message_processor=info,solana_bpf_loader=info,solana_rbpf=info" --env="SOLANA_URL=http://host_solana:8899" --workdir="/" ${VOLUME_ARGS} ${EVM_LOADER_IMAGE} bash /rust_container_runner/docker_assets/solana-run-neon.sh)
-DOCKER_ID_PROXY=$(docker create --network=testnet --hostname="host_proxy" ${PLATFORM_CMD} --env="SOLANA_URL=http://host_solana:8899" ${PROXY_IMAGE})
+DOCKER_ID_PROXY=$(docker create --network=testnet --hostname="host_proxy" ${PLATFORM_CMD} --env="SOLANA_URL=http://host_solana:8899" --env="EVM_LOADER=53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io" --entrypoint="" ${VOLUME_ARGS} ${PROXY_IMAGE} bash /rust_container_runner/docker_assets/neon_proxy.sh)
 DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_ETH_RPC})
 
 # delayed start to wait for everything to be pulled and created
@@ -76,9 +72,10 @@ DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" ${
 #docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
 docker start $DOCKER_ID_SOLANA
 docker attach $DOCKER_ID_SOLANA &> $DOCKERFOLDER/host_solana.log &
-sleep 10
+sleep 12
 docker start $DOCKER_ID_PROXY
 docker attach $DOCKER_ID_PROXY &> $DOCKERFOLDER/host_proxy.log &
+sleep 6
 docker start $DOCKER_ID_ETH_RPC
 docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
 

@@ -36,7 +36,7 @@ pub async fn main() {
     //let rpc_url = "http://localhost:8545/ext/bc/C/rpc";
     //let rpc_host = "127.0.0.1:8899";
     // neon
-    let rpc_url = "http://host_proxy:8899";
+    let rpc_url = "http://host_proxy:8545";
     // wait for the server to be ready
     /*for _ in 0..40 {
         if TcpStream::connect(rpc_host).await.is_ok() {
