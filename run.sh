@@ -27,14 +27,14 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     # the linker is also set in `orchestrator/.cargo/config`
 fi
 
-VOLUME_ARGS="${REPOFOLDER}:/rust_container_runner"
+VOLUME_ARGS="-v ${REPOFOLDER}:/rust_container_runner"
 
-RUN_ARGS=""
+RUN_ARGS_ETH_RPC=""
 RUN_ARGS_TCP=""
 if [[ "${TEST_TYPE:-}" == "NO_SCRIPTS" ]]; then
    echo "Running container instance without starting scripts"
 else
-   RUN_ARGS="/bin/bash /rust_container_runner/docker_assets/run_eth_rpc.sh"
+   RUN_ARGS_ETH_RPC="/bin/bash /rust_container_runner/docker_assets/run_eth_rpc.sh"
    RUN_ARGS_TCP="/bin/bash /rust_container_runner/docker_assets/run_tcp.sh"
 fi
 
@@ -50,17 +50,19 @@ PROXY_IMAGE="neonlabsorg/proxy:5fe50d3b6d050fc6c44c6b0e5097de89ea3da2c5"
 # there are scripts still hardcoded with 8899
 SOLANA_URL="http://solana:8899"
 
-EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE SOLANA_URL=$SOLANA_URL RUN_ARGS=$RUN_ARGS RUN_ARGS_TCP=$RUN_ARGS_TCP VOLUME_ARGS=$VOLUME_ARGS docker-compose down
+#docker rm -f rust_test_runner_image
+#docker build -t rust_test_runner_image $PLATFORM_CMD .
 
-docker rm -f rust_test_runner_image
-docker build -t rust_test_runner_image $PLATFORM_CMD .
+# docker-compose has too many problems with conditionally propogating env variables to it and
+# subcommands, so we manually compose a network
 
 set +e
-EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE SOLANA_URL=$SOLANA_URL RUN_ARGS=$RUN_ARGS RUN_ARGS_TCP=$RUN_ARGS_TCP VOLUME_ARGS=$VOLUME_ARGS docker-compose up -d
+docker network rm testnet
 set -e
+# insure everything is self contained
+docker network create --internal testnet
 
-#error trying to connect: tcp connect error: Cannot assign requested address
+docker run --network=testnet -a stdout -a stderr --hostname="tcp_host" $VOLUME_ARGS $PLATFORM_CMD rust_test_runner_image $RUN_ARGS_TCP &> $DOCKERFOLDER/tcp_host.log &
+docker run --network=testnet -a stdout -a stderr --hostname="eth_rpc_host" $VOLUME_ARGS $PLATFORM_CMD rust_test_runner_image $RUN_ARGS_ETH_RPC &> $DOCKERFOLDER/eth_rpc_host.log
 
-read -p "Press Return to Close..."
-
-EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE SOLANA_URL=$SOLANA_URL RUN_ARGS=$RUN_ARGS RUN_ARGS_TCP=$RUN_ARGS_TCP VOLUME_ARGS=$VOLUME_ARGS docker-compose down
+#read -p "Press Return to Close..."
