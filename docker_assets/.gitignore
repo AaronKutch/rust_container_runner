@@ -6,3 +6,4 @@
 !run_tcp.sh
 !bor_genesis.json
 !avalanchego_genesis.json
+!solana-run-neon.sh
