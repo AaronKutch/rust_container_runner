@@ -27,7 +27,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     # the linker is also set in `orchestrator/.cargo/config`
 fi
 
-VOLUME_ARGS="-v ${REPOFOLDER}:/rust_container_runner"
+VOLUME_ARGS="${REPOFOLDER}:/rust_container_runner"
 
 RUN_ARGS=""
 if [[ "${TEST_TYPE:-}" == "NO_SCRIPTS" ]]; then
@@ -42,12 +42,19 @@ PATH=$PATH:$HOME/.cargo/bin CROSS_COMPILE=$CROSS_COMPILE cargo build --release -
 # because the binaries are put in different directories depending on $RCR_TARGET, copy them to a common place
 cp $REPOFOLDER/target/$RCR_TARGET/release/rust_container_runner $DOCKERFOLDER/internal_runner
 
-# Remove existing container instance
+EVM_LOADER_IMAGE="neonlabsorg/evm_loader:d10ea83c02257b885d71fb3d62d64f9d28f4507d"
+PROXY_IMAGE="neonlabsorg/proxy:5fe50d3b6d050fc6c44c6b0e5097de89ea3da2c5"
+# there are scripts still hardcoded with 8899
+SOLANA_URL="http://localhost:8899"
+
+EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE SOLANA_URL=$SOLANA_URL RUN_ARGS=$RUN_ARGS VOLUME_ARGS=$VOLUME_ARGS docker-compose down
+
 set +e
-docker rm -f rust_test_runner_container
+EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE SOLANA_URL=$SOLANA_URL RUN_ARGS=$RUN_ARGS VOLUME_ARGS=$VOLUME_ARGS docker-compose up -d
 set -e
 
-docker build -t rust_test_runner_container $PLATFORM_CMD .
+#error trying to connect: tcp connect error: Cannot assign requested address
 
-# Run new test container instance
-docker run --name rust_test_runner_container $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS
+read -p "Press Return to Close..."
+
+EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE SOLANA_URL=$SOLANA_URL RUN_ARGS=$RUN_ARGS VOLUME_ARGS=$VOLUME_ARGS docker-compose down

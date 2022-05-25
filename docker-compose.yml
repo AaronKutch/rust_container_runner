@@ -1,0 +1,62 @@
+version: "3"
+
+networks:
+  default:
+    name: testnet
+
+services:
+  # solana:
+  #   container_name: solana
+  #   image: ${EVM_LOADER_IMAGE}
+  #   environment:
+  #     - RUST_LOG=solana_runtime::system_instruction_processor=info,solana_runtime::message_processor=info,solana_bpf_loader=info,solana_rbpf=info
+  #     - SOLANA_URL=${SOLANA_URL}
+  #   ports:
+  #     - 8899:8899
+  #     - 9900:9900
+  #     - 8900:8900
+  #     - 8003:8003/udp
+  #   expose:
+  #     - "8899"
+  #     - "9900"
+  #     - "8900"
+  #     - "8003/udp"
+  #   healthcheck:
+  #     # Must be available from outside (calling without -u causes premature result)
+  #     test: [ CMD-SHELL, "./wait-for-neon.sh" ]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 20
+  #     start_period: 5s
+  #   entrypoint:
+  #     /opt/solana/bin/solana-run-neon.sh
+
+  #proxy:
+  #  container_name: proxy
+  #  image: ${PROXY_IMAGE}
+  #  hostname: proxy
+  #  environment:
+  #    - SOLANA_URL=${SOLANA_URL}
+  #  healthcheck:
+  #    test: [ CMD-SHELL, "/opt/health_check_proxy.sh" ]
+  #    interval: 5s
+  #    timeout: 3s
+  #    retries: 20
+  #    start_period: 5s
+  #  ports:
+  #    - 9090:9090
+  #  depends_on:
+  #    solana:
+  #      condition: service_healthy
+
+  gravity-base:
+    image: gravity-base
+    environment:
+      ETH_NODE: ${SOLANA_URL}
+      #USE_LOCAL_ARTIFACTS: ${USE_LOCAL_ARTIFACTS}
+    volumes:
+      - ${VOLUME_ARGS}
+    command: ${RUN_ARGS}
+    depends_on:
+      solana:
+        condition: service_healthy

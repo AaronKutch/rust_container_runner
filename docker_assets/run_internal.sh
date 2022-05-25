@@ -24,8 +24,8 @@ pushd /
 # To the end of the "alloc" block, and search+replace `71562b71999873DB5b286dF957af199Ec94617F7`
 # with `Bf660843528035a5A4921534E156a27e64B231fE` in a large block of hex so that our account
 # can be a block producer
-bor --identity "GravityTestnet" \
-    --nodiscover --networkid 15 init /rust_container_runner/docker_assets/bor_genesis.json
+#bor --identity "GravityTestnet" \
+#    --nodiscover --networkid 15 init /rust_container_runner/docker_assets/bor_genesis.json
 
 # `--dev` uses its own genesis, `bor` otherwise requires a keystore with the private key for
 # 0xb1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7
@@ -34,23 +34,23 @@ bor --identity "GravityTestnet" \
 # `import json`
 # `json.dumps(Account.encrypt('0xb1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7', 'dev'))`
 # and pasting the json into dev_keystore/dev_key.json
-bor --identity "GravityTestnet" \
-    --nodiscover \
-    --networkid 15 \
-    --bor.withoutheimdall \
-    --http \
-    --http.addr="0.0.0.0" \
-    --http.vhosts="*" \
-    --http.corsdomain="*" \
-    --nousb \
-    --verbosity=5 \
-    --mine \
-    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE \
-    --unlock=0xBf660843528035a5A4921534E156a27e64B231fE \
-    --allow-insecure-unlock \
-    --keystore="/rust_container_runner/docker_assets/dev_keystore" \
-    --password="/rust_container_runner/docker_assets/dev_password.txt" \
-    &> /rust_container_runner/docker_assets/bor.log &
+#bor --identity "GravityTestnet" \
+#    --nodiscover \
+#    --networkid 15 \
+#    --bor.withoutheimdall \
+#    --http \
+#    --http.addr="0.0.0.0" \
+#    --http.vhosts="*" \
+#    --http.corsdomain="*" \
+#    --nousb \
+#    --verbosity=5 \
+#    --mine \
+#    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE \
+#    --unlock=0xBf660843528035a5A4921534E156a27e64B231fE \
+#    --allow-insecure-unlock \
+#    --keystore="/rust_container_runner/docker_assets/dev_keystore" \
+#    --password="/rust_container_runner/docker_assets/dev_password.txt" \
+#    &> /rust_container_runner/docker_assets/bor.log &
 
 # the setup for local testing
 #avalanchego \
