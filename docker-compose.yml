@@ -1,49 +1,49 @@
 version: "3"
 
 services:
-  # solana:
-  #   container_name: solana
-  #   image: ${EVM_LOADER_IMAGE}
-  #   environment:
-  #     - RUST_LOG=solana_runtime::system_instruction_processor=info,solana_runtime::message_processor=info,solana_bpf_loader=info,solana_rbpf=info
-  #     - SOLANA_URL=${SOLANA_URL}
-  #   ports:
-  #     - 8899:8899
-  #     - 9900:9900
-  #     - 8900:8900
-  #     - 8003:8003/udp
-  #   expose:
-  #     - "8899"
-  #     - "9900"
-  #     - "8900"
-  #     - "8003/udp"
-  #   healthcheck:
-  #     # Must be available from outside (calling without -u causes premature result)
-  #     test: [ CMD-SHELL, "./wait-for-neon.sh" ]
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 20
-  #     start_period: 5s
-  #   entrypoint:
-  #     /opt/solana/bin/solana-run-neon.sh
+  solana:
+    container_name: solana
+    image: ${EVM_LOADER_IMAGE}
+    environment:
+      - RUST_LOG=solana_runtime::system_instruction_processor=info,solana_runtime::message_processor=info,solana_bpf_loader=info,solana_rbpf=info
+      - SOLANA_URL=${SOLANA_URL}
+    ports:
+      - 8899:8899
+      - 9900:9900
+      - 8900:8900
+      - 8003:8003/udp
+    expose:
+      - "8899"
+      - "9900"
+      - "8900"
+      - "8003/udp"
+    healthcheck:
+      # Must be available from outside (calling without -u causes premature result)
+      test: [ CMD-SHELL, "./wait-for-neon.sh" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    entrypoint:
+      /opt/solana/bin/solana-run-neon.sh
 
-  #proxy:
-  #  container_name: proxy
-  #  image: ${PROXY_IMAGE}
-  #  hostname: proxy
-  #  environment:
-  #    - SOLANA_URL=${SOLANA_URL}
-  #  healthcheck:
-  #    test: [ CMD-SHELL, "/opt/health_check_proxy.sh" ]
-  #    interval: 5s
-  #    timeout: 3s
-  #    retries: 20
-  #    start_period: 5s
-  #  ports:
-  #    - 9090:9090
-  #  depends_on:
-  #    solana:
-  #      condition: service_healthy
+  proxy:
+   container_name: proxy
+   image: ${PROXY_IMAGE}
+   hostname: proxy
+   environment:
+     - SOLANA_URL=${SOLANA_URL}
+   healthcheck:
+     test: [ CMD-SHELL, "/opt/health_check_proxy.sh" ]
+     interval: 5s
+     timeout: 3s
+     retries: 20
+     start_period: 5s
+   ports:
+     - 9090:9090
+   depends_on:
+     solana:
+       condition: service_healthy
 
   eth_rpc_container:
     image: rust_test_runner_image
@@ -54,14 +54,14 @@ services:
       tcp_container:
         condition: service_healthy
 
-  tcp_container:
-    image: rust_test_runner_image
-    volumes:
-      - ${VOLUME_ARGS}
-    healthcheck:
-      test: [ "CMD", "echo" ]
-      interval: 3s
-      timeout: 2s
-      retries: 3
-      start_period: 3s
-    command: ${RUN_ARGS_TCP}
+  #tcp_container:
+  #  image: rust_test_runner_image
+  #  volumes:
+  #    - ${VOLUME_ARGS}
+  #  healthcheck:
+  #    test: [ "CMD", "echo" ]
+  #    interval: 3s
+  #    timeout: 2s
+  #    retries: 3
+  #    start_period: 3s
+  #  command: ${RUN_ARGS_TCP}

@@ -50,6 +50,8 @@ PROXY_IMAGE="neonlabsorg/proxy:5fe50d3b6d050fc6c44c6b0e5097de89ea3da2c5"
 # there are scripts still hardcoded with 8899
 SOLANA_URL="http://solana:8899"
 
+RUN_ARGS_SOLANA="/opt/solana/bin/solana-run-neon.sh"
+
 #docker rm -f rust_test_runner_image
 #docker build -t rust_test_runner_image $PLATFORM_CMD .
 
@@ -62,7 +64,19 @@ set -e
 # insure everything is self contained
 docker network create --internal testnet
 
-docker run --network=testnet -a stdout -a stderr --hostname="tcp_host" $VOLUME_ARGS $PLATFORM_CMD rust_test_runner_image $RUN_ARGS_TCP &> $DOCKERFOLDER/tcp_host.log &
-docker run --network=testnet -a stdout -a stderr --hostname="eth_rpc_host" $VOLUME_ARGS $PLATFORM_CMD rust_test_runner_image $RUN_ARGS_ETH_RPC &> $DOCKERFOLDER/eth_rpc_host.log
+DOCKER_ID_TCP=$(docker create --rm --network=testnet --hostname="host_tcp" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_TCP})
+#DOCKER_ID_SOLANA=$(docker create --network=testnet --hostname="host_solana" ${PLATFORM_CMD} --entrypoint="/opt/solana/bin/solana-run-neon.sh" ${EVM_LOADER_IMAGE} ${RUN_ARGS_SOLANA})
+DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_ETH_RPC})
 
-#read -p "Press Return to Close..."
+# delayed start to wait for everything to be pulled and created
+docker start $DOCKER_ID_TCP
+# there is unfortunately a small period of time where stdout could be lost, but there seems to be no
+# way around this, redirecting anywhere else gets the wrong stdout
+docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
+docker start $DOCKER_ID_ETH_RPC
+docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
+
+read -p "Press Return to Close..."
+
+docker rm -f $DOCKER_ID_TCP
+docker rm -f $DOCKER_ID_ETH_RPC
