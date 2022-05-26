@@ -1,10 +1,20 @@
 
 cd /opt/
 
-export POSTGRES_DB="host_db"
-export POSTGRES_USER=neon-proxy
-export POSTGRES_PASSWORD=neon-proxy-pass
-bash proxy/run-dbcreation.sh
+export POSTGRES_HOST=host_db
+export POSTGRES_DB=root
+export POSTGRES_USER=root
+export POSTGRES_PASSWORD=root
+
+if [ -z "$EVM_LOADER" ]; then
+    export EVM_LOADER=$(solana address -k /spl/bin/evm_loader-keypair.json)
+    echo "$EVM_LOADER=$EVM_LOADER"
+fi
+
+psql -h ${POSTGRES_HOST} ${POSTGRES_DB} ${POSTGRES_USER} -a -f /rust_container_runner/docker_assets/scheme.sql
+psql -h ${POSTGRES_HOST} ${POSTGRES_DB} ${POSTGRES_USER} --command "\\dt+ public.*"
+psql -h ${POSTGRES_HOST} ${POSTGRES_DB} ${POSTGRES_USER} --command "\\d+ public.*"
+
 
 #export EVM_LOADER=$(solana address -k /spl/bin/evm_loader-keypair.json)
 #export $(/spl/bin/neon-cli --commitment confirmed --url $SOLANA_URL --evm_loader="$EVM_LOADER" neon-elf-params)
@@ -13,7 +23,6 @@ bash proxy/run-dbcreation.sh
 [[ -z "$EXTRA_GAS"                    ]] && export EXTRA_GAS=0
 [[ -z "$NEON_CLI_TIMEOUT"             ]] && export NEON_CLI_TIMEOUT="0.9"
 [[ -z "$MINIMAL_GAS_PRICE"            ]] && export MINIMAL_GAS_PRICE=1
-[[ -z "$POSTGRES_HOST"                ]] && export POSTGRES_HOST="host_db"
 [[ -z "$CANCEL_TIMEOUT"               ]] && export CANCEL_TIMEOUT=10
 [[ -z "$RETRY_ON_FAIL"                ]] && export RETRY_ON_FAIL=10
 [[ -z "$FINALIZED"                    ]] && export FINALIZED="finalized"
