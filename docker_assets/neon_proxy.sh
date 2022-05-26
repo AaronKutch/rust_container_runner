@@ -24,4 +24,5 @@ psql -h ${POSTGRES_HOST} ${POSTGRES_DB} ${POSTGRES_USER} --command "\\d+ public.
 
 export PROMETHEUS_MULTIPROC_DIR=$(mktemp -d)
 
-python3 -m proxy --hostname 0.0.0.0 --port 8545 --enable-web-server --plugins proxy.plugin.NeonRpcApiPlugin --timeout 20
+# the timeout just drops persistent connections
+python3 -m proxy --hostname 0.0.0.0 --port 8545 --enable-web-server --plugins proxy.plugin.NeonRpcApiPlugin --timeout 9999
