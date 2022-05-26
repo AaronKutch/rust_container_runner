@@ -3,21 +3,13 @@ cd /opt/
 
 export POSTGRES_HOST=host_db
 export POSTGRES_DB=root
-export POSTGRES_USER=root
-export POSTGRES_PASSWORD=root
-
-if [ -z "$EVM_LOADER" ]; then
-    export EVM_LOADER=$(solana address -k /spl/bin/evm_loader-keypair.json)
-    echo "$EVM_LOADER=$EVM_LOADER"
-fi
+export POSTGRES_USER=neon-proxy
+export POSTGRES_PASSWORD=neon-proxy-pass
+export PGPASSWORD=${POSTGRES_PASSWORD}
 
 psql -h ${POSTGRES_HOST} ${POSTGRES_DB} ${POSTGRES_USER} -a -f /rust_container_runner/docker_assets/scheme.sql
 psql -h ${POSTGRES_HOST} ${POSTGRES_DB} ${POSTGRES_USER} --command "\\dt+ public.*"
 psql -h ${POSTGRES_HOST} ${POSTGRES_DB} ${POSTGRES_USER} --command "\\d+ public.*"
-
-
-#export EVM_LOADER=$(solana address -k /spl/bin/evm_loader-keypair.json)
-#export $(/spl/bin/neon-cli --commitment confirmed --url $SOLANA_URL --evm_loader="$EVM_LOADER" neon-elf-params)
 
 [[ -z "$SOLANA_URL"                   ]] && export SOLANA_URL="http://host_solana:8899"
 [[ -z "$EXTRA_GAS"                    ]] && export EXTRA_GAS=0

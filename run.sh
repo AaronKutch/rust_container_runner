@@ -63,7 +63,8 @@ docker network create --internal testnet
 
 #DOCKER_ID_TCP=$(docker create --rm --network=testnet --hostname="host_tcp" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_TCP})
 
-DOCKER_ID_DB=$(docker create --network=testnet --hostname="host_db" ${PLATFORM_CMD} --env="POSTGRES_HOST_AUTH_METHOD=trust" --env="POSTGRES_DB=root" --env="POSTGRES_USER=root" --env="POSTGRES_PASSWORD=root" ${VOLUME_ARGS} ${DB_IMAGE})
+# note: change `neon_proxy.sh` if the variables here are changed
+DOCKER_ID_DB=$(docker create --network=testnet --hostname="host_db" ${PLATFORM_CMD} --env="POSTGRES_DB=root" --env="POSTGRES_USER=neon-proxy" --env="POSTGRES_PASSWORD=neon-proxy-pass" ${VOLUME_ARGS} ${DB_IMAGE})
 
 DOCKER_ID_SOLANA=$(docker create --network=testnet --hostname="host_solana" ${PLATFORM_CMD} --env="RUST_LOG=solana_runtime::system_instruction_processor=info,solana_runtime::message_processor=info,solana_bpf_loader=info,solana_rbpf=info" --env="SOLANA_URL=http://host_solana:8899" --workdir="/" ${VOLUME_ARGS} ${EVM_LOADER_IMAGE} bash /rust_container_runner/docker_assets/solana-run-neon.sh)
 
