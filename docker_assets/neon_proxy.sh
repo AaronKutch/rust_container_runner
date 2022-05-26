@@ -7,7 +7,7 @@ export POSTGRES_USER=neon-proxy
 export POSTGRES_PASSWORD=neon-proxy-pass
 export PGPASSWORD=${POSTGRES_PASSWORD}
 
-psql -h ${POSTGRES_HOST} ${POSTGRES_DB} ${POSTGRES_USER} -a -f /rust_container_runner/docker_assets/scheme.sql
+psql -h ${POSTGRES_HOST} ${POSTGRES_DB} ${POSTGRES_USER} -a -f proxy/db/scheme.sql
 psql -h ${POSTGRES_HOST} ${POSTGRES_DB} ${POSTGRES_USER} --command "\\dt+ public.*"
 psql -h ${POSTGRES_HOST} ${POSTGRES_DB} ${POSTGRES_USER} --command "\\d+ public.*"
 
