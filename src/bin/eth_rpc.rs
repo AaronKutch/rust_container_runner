@@ -6,6 +6,7 @@ use clarity::{
 };
 use futures::future::join_all;
 use lazy_static::lazy_static;
+use tokio::{net::TcpStream, time::sleep};
 use web30::{
     client::Web3,
     jsonrpc::{client::HttpClient, error::Web3Error},
@@ -37,39 +38,53 @@ pub async fn main() {
     //let rpc_host = "127.0.0.1:8899";
     // neon
     let rpc_url = "http://host_proxy:8545/solana";
+    let rpc_host = "http://host_proxy:8545";
 
-    //curl -s --header "Content-Type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}' http://host_proxy:8545/solana
+    //curl -s --header "Content-Type: application/json" --data
+    //'{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}'
+    //http://host_proxy:8545/solana
 
     // wait for the server to be ready
-    /*for _ in 0..40 {
+    for _ in 0..40 {
         if TcpStream::connect(rpc_host).await.is_ok() {
             break
         }
         sleep(Duration::from_millis(500)).await
-    }*/
+    }
     let rpc = HttpClient::new(rpc_url);
 
-    let methods = [
+    let calls = [
         // commented out are mentioned in `Web30` but are not used in the bridge
-        //"accounts",
-        //"chainId",
-        //"newFilter",
-        //"getLogs",
-        "getTransactionCount",
-        "gasPrice",
-        "estimateGas",
-        "getBalance",
-        "syncing",
-        //"sendTransaction",
-        "sendRawTransaction",
-        //"call",
-        //"blockNumber",
+        //"eth_accounts",
+        //"eth_chainId",
+        //"eth_newFilter",
+        //"eth_getLogs",
+        vec![
+            "eth_getTransactionCount".to_owned(),
+            EthAddress::default().to_string(),
+            "latest".to_string(),
+        ],
+        vec!["eth_gasPrice".to_string()],
+        vec![
+            "eth_estimateGas".to_string(),
+            EthAddress::default().to_string(),
+        ],
+        vec![
+            "eth_getBalance".to_string(),
+            EthAddress::default().to_string(),
+            "latest".to_string(),
+        ],
+        vec!["eth_syncing".to_string()],
+        //"eth_sendTransaction",
+        vec!["eth_sendRawTransaction".to_string(), "0x0".to_string()],
+        //"eth_call",
+        //"eth_blockNumber",
     ];
-    for eth_method in methods.into_iter().map(|s| "eth_".to_owned() + s) {
-        let res: Result<SyncingStatus, Web3Error> = rpc
-            .request_method(&eth_method, Vec::<String>::new(), Duration::from_secs(10))
+    for call in calls.into_iter() {
+        let res: Result<String, Web3Error> = rpc
+            .request_method(&call[0], call[1..].to_owned(), Duration::from_secs(10))
             .await;
-        println!("{} => {:?}", eth_method, res);
+        println!("{} => {:?}", &call[0], res);
     }
 
     let res: Result<SyncingStatus, Web3Error> = rpc

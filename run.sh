@@ -86,9 +86,9 @@ docker start $DOCKER_ID_PROXY
 docker attach $DOCKER_ID_PROXY &> $DOCKERFOLDER/host_proxy.log &
 sleep 7
 docker start $DOCKER_ID_ETH_RPC
-docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
+docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log
 
-read -p "Press Return to Close..."
+#read -p "Press Return to Close..."
 
 #docker rm -f $DOCKER_ID_TCP
 docker rm -f $DOCKER_ID_DB
