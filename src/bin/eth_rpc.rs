@@ -37,20 +37,24 @@ pub async fn main() {
     //let rpc_url = "http://localhost:8545/ext/bc/C/rpc";
     //let rpc_host = "127.0.0.1:8899";
     // neon
-    let rpc_url = "http://host_proxy:8545/solana";
-    let rpc_host = "http://host_proxy:8545";
+    //let rpc_url = "http://host_proxy:8545/solana";
+    //let rpc_host = "http://host_proxy:8545";
+    let rpc_url = "http://host_moonbeam:9944";
+    let rpc_host = "http://host_moonbeam:9944";
 
     //curl -s --header "Content-Type: application/json" --data
     //'{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}'
     //http://host_proxy:8545/solana
 
+    //curl -s --header "Content-Type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}' http://host_moonbeam:9944
+
     // wait for the server to be ready
-    for _ in 0..40 {
+    /*for _ in 0..40 {
         if TcpStream::connect(rpc_host).await.is_ok() {
             break
         }
         sleep(Duration::from_millis(500)).await
-    }
+    }*/
     let rpc = HttpClient::new(rpc_url);
 
     let calls = [
