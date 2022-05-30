@@ -40,10 +40,6 @@ pub async fn main() {
     let rpc_url = "http://host_proxy:8545/solana";
     let rpc_host = "http://host_proxy:8545";
 
-    //curl -s --header "Content-Type: application/json" --data
-    //'{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}'
-    //http://host_proxy:8545/solana
-
     // wait for the server to be ready
     for _ in 0..40 {
         if TcpStream::connect(rpc_host).await.is_ok() {
@@ -94,13 +90,17 @@ pub async fn main() {
 
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
+    dbg!();
     dbg!(web3.eth_syncing().await);
+    dbg!();
     dbg!(web3.eth_synced_block_number().await);
+    dbg!();
 
     //sleep(Duration::from_secs(5)).await;
-    web3.wait_for_next_block(Duration::from_secs(120))
+    web3.wait_for_next_block(Duration::from_secs(20))
         .await
         .unwrap();
+    dbg!();
 
     dbg!(
         web3.eth_get_balance(
