@@ -92,6 +92,8 @@ pushd /
 #    --http.api="eth,debug,net,admin,web3,personal,txpool,ftm,dag" \
 #    --datadir="/opera_datadir" &> /rust_container_runner/docker_assets/opera.log &
 
+# give time for bash redirection
+sleep 1
 # neon
 curl -i -X POST -d '{"wallet": "0xBf660843528035a5A4921534E156a27e64B231fE", "amount": 900000000}' 'http://host_faucet:3333/request_neon'
 sleep 1
