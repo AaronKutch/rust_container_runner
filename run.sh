@@ -72,7 +72,7 @@ DOCKER_ID_DB=$(docker create --network=testnet --hostname="host_db" --name="host
 
 DOCKER_ID_SOLANA=$(docker create --network=testnet --hostname="host_solana" --name="host_solana" ${PLATFORM_CMD} --env="RUST_LOG=solana_runtime::system_instruction_processor=info,solana_runtime::message_processor=info,solana_bpf_loader=info,solana_rbpf=info" --env="SOLANA_URL=http://host_solana:8899" --workdir="/" ${VOLUME_ARGS} ${EVM_LOADER_IMAGE} bash /rust_container_runner/docker_assets/solana-run-neon.sh)
 
-DOCKER_ID_FAUCET=$(docker create --network=testnet --hostname="host_faucet" --name="host_faucet" ${PLATFORM_CMD} --env="FAUCET_RPC_BIND=0.0.0.0" --env="FAUCET_RPC_PORT=3333" --env="SOLANA_URL=http://host_solana:8899" --env="NEON_ETH_MAX_AMOUNT=50000" --env="EVM_LOADER=53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io" --env="FAUCET_RPC_ALLOWED_ORIGINS=all" --env="FAUCET_WEB3_ENABLE=false" --env="FAUCET_SOLANA_ENABLE=true" --env="NEON_OPERATOR_KEYFILE=/opt/faucet/id.json" --env="SOLANA_COMMITMENT=confirmed" --env="TEST_FAUCET_INIT_NEON_BALANCE=100000000" --entrypoint="./run-test-faucet.sh" ${FAUCET_IMAGE})
+DOCKER_ID_FAUCET=$(docker create --network=testnet --hostname="host_faucet" --name="host_faucet" ${PLATFORM_CMD} --env="FAUCET_RPC_BIND=0.0.0.0" --env="FAUCET_RPC_PORT=3333" --env="SOLANA_URL=http://host_solana:8899" --env="NEON_ETH_MAX_AMOUNT=900000000" --env="EVM_LOADER=53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io" --env="FAUCET_WEB3_ENABLE=false" --env="FAUCET_SOLANA_ENABLE=true" --env="NEON_OPERATOR_KEYFILE=/opt/faucet/id.json" --env="SOLANA_COMMITMENT=confirmed" --env="TEST_FAUCET_INIT_NEON_BALANCE=100000000" --entrypoint="./run-test-faucet.sh" ${FAUCET_IMAGE})
 
 DOCKER_ID_PROXY=$(docker create --network=testnet --hostname="host_proxy" --name="host_proxy" ${PLATFORM_CMD} --env="SOLANA_URL=http://host_solana:8899" --env="EVM_LOADER=53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io" --entrypoint="" ${VOLUME_ARGS} ${PROXY_IMAGE} bash /rust_container_runner/docker_assets/neon_proxy.sh)
 
@@ -99,6 +99,7 @@ docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
 read -p "Press Return to Close..."
 
 #curl -s --header "Content-Type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}' http://host_proxy:8545/solana
+#curl -s --header "Content-Type: application/json" --data '{"method":"eth_syncing","params":[],"id":93,"jsonrpc":"2.0"}' http://host_proxy:8545/solana
 
 #docker rm -f $DOCKER_ID_TCP
 docker rm -f $DOCKER_ID_DB
