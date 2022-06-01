@@ -88,17 +88,18 @@ DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" --
 #docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
 #docker start $DOCKER_ID_DB
 #docker attach $DOCKER_ID_DB &> $DOCKERFOLDER/host_db.log &
-#docker start $DOCKER_ID_SOLANA
-#docker attach $DOCKER_ID_SOLANA &> $DOCKERFOLDER/host_solana.log &
-#sleep 12
+docker start $DOCKER_ID_SOLANA
+docker attach $DOCKER_ID_SOLANA &> $DOCKERFOLDER/host_solana.log &
+docker exec host_solana ./wait-for-neon.sh 100
 #docker start $DOCKER_ID_FAUCET
 #docker attach $DOCKER_ID_FAUCET &> $DOCKERFOLDER/host_faucet.log &
 #docker start $DOCKER_ID_PROXY
 #docker attach $DOCKER_ID_PROXY &> $DOCKERFOLDER/host_proxy.log &
-#sleep 7
 
-DB_IMAGE=$DB_IMAGE EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE FAUCET_IMAGE=$FAUCET_IMAGE docker-compose up
-docker exec host_solana ./wait-for-neon.sh 100
+DB_IMAGE=$DB_IMAGE EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE FAUCET_IMAGE=$FAUCET_IMAGE docker-compose up &
+
+sleep 10
+
 docker start $DOCKER_ID_ETH_RPC
 docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
 
@@ -111,8 +112,7 @@ docker-compose down
 
 #docker rm -f $DOCKER_ID_TCP
 #docker rm -f $DOCKER_ID_DB
-#docker rm -f $DOCKER_ID_SOLANA
+docker rm -f $DOCKER_ID_SOLANA
 #docker rm -f $DOCKER_ID_FAUCET
 #docker rm -f $DOCKER_ID_PROXY
-
 docker rm -f $DOCKER_ID_ETH_RPC

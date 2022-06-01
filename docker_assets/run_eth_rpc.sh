@@ -95,7 +95,7 @@ pushd /
 # give time for bash redirection
 sleep 1
 # neon
-curl -i -X POST -d '{"wallet": "0xBf660843528035a5A4921534E156a27e64B231fE", "amount": 900000000}' 'http://host_faucet:3333/request_neon'
+curl -i -X POST -d '{"wallet": "0xBf660843528035a5A4921534E156a27e64B231fE", "amount": 900000000}' 'http://faucet:3333/request_neon'
 sleep 1
 
 RUST_LOG="TRACE" RUST_BACKTRACE=full /rust_container_runner/docker_assets/eth_rpc
