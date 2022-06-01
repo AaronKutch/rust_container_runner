@@ -19,6 +19,7 @@ services:
     image: ${DB_IMAGE}
     command: postgres -c 'max_connections=1000'
     environment:
+      POSTGRES_HOST: localhost
       POSTGRES_DB: neon-db
       POSTGRES_USER: neon-proxy
       POSTGRES_PASSWORD: neon-proxy-pass
@@ -28,7 +29,7 @@ services:
       interval: 3s
       timeout: 3s
       retries: 10
-      start_period: 5s
+      #start_period: 5s
     expose:
       - "5432"
     ports:
@@ -41,7 +42,7 @@ services:
   #  image: ${PROXY_IMAGE}
   #  environment:
   #    SOLANA_URL: http://host_solana:8899
-  #    POSTGRES_HOST: postgres
+  #    POSTGRES_HOST: localhost
   #    POSTGRES_DB: neon-db
   #    POSTGRES_USER: neon-proxy
   #    POSTGRES_PASSWORD: neon-proxy-pass
@@ -52,23 +53,6 @@ services:
   #  depends_on:
   #    postgres:
   #      condition: service_healthy
-
-  dbcreation:
-    container_name: dbcreation
-    image: ${PROXY_IMAGE}
-    environment:
-      SOLANA_URL: http://host_solana:8899
-      POSTGRES_HOST: postgres
-      POSTGRES_DB: neon-db
-      POSTGRES_USER: neon-proxy
-      POSTGRES_PASSWORD: neon-proxy-pass
-    entrypoint: /bin/sh
-    command: sleep 25
-    networks:
-      - testnet
-    depends_on:
-      postgres:
-        condition: service_healthy
 
   proxy:
     container_name: proxy

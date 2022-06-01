@@ -1,0 +1,36 @@
+(
+images: {
+    "proxy": "neonlabsorg/proxy:34f69dd972e9b76f6dc7886b70c53e0150b5b65e",
+},
+common_env_vars: {
+    "common": {
+        "SOLANA_URL": "http://host_solana:8899",
+        "FAUCET_URL": "http://faucet:3333",
+        "POSTGRES_DB": "neon-db",
+        "POSTGRES_USER": "neon-proxy",
+        "POSTGRES_PASSWORD": "neon-proxy-pass",
+    }
+},
+containers: {
+    "proxy": (
+        image: "proxy",
+        common_env_vars: ["common"],
+        env_vars: {
+            "LOG_NEON_CLI_DEBUG": "YES",
+            "FUZZING_BLOCKHASH": "YES",
+            "CONFIG": "ci",
+            "MIN_OPERATOR_BALANCE_TO_WARN": "4565760000", // = 913152000 * 5 (5 storage accounts) = 4.56576 SOL
+            "MIN_OPERATOR_BALANCE_TO_ERR": "913152000", // = solana rent 131072 (= Rent-exempt minimum: 0.913152 SOL) SOLs to create a storage
+            "MINIMAL_GAS_PRICE": "1",
+            "ENABLE_PRIVATE_API": "YES",
+            "ALLOW_UNDERPRICED_TX_WITHOUT_CHAINID": "YES",
+            "LOG_FULL_OBJECT_INFO": "YES",
+            "EVM_LOADER": "53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io",
+        },
+    ),
+},
+/*run_graph: [
+    (container: "proxy"),
+    (check: (container: "proxy", test: "/opt/health_check_proxy.sh"))
+],*/
+)

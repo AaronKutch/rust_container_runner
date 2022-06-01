@@ -1,7 +1,7 @@
 
 cd /opt/
 
-export POSTGRES_HOST=host_db
+export POSTGRES_HOST=localhost
 export POSTGRES_DB=neon-db
 export POSTGRES_USER=neon-proxy
 export POSTGRES_PASSWORD=neon-proxy-pass
