@@ -51,6 +51,8 @@ cp $REPOFOLDER/target/$RCR_TARGET/release/tcp $DOCKERFOLDER/tcp
 #FAUCET_IMAGE="neonlabsorg/faucet:19a661e04545f3a880efc04f9b7924ba7c0d92cb"
 
 docker rm -f rust_test_runner_image
+docker-compose -f docker-compose-neon2.yml down
+
 docker build -t rust_test_runner_image $PLATFORM_CMD .
 
 set +e
@@ -92,8 +94,6 @@ docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
 #docker start $DOCKER_ID_PROXY
 #docker attach $DOCKER_ID_PROXY &> $DOCKERFOLDER/host_proxy.log &
 
-# DB_IMAGE=$DB_IMAGE EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE FAUCET_IMAGE=$FAUCET_IMAGE docker-compose up &> $DOCKERFOLDER/host_docker_compose.log &
-
 # sleep 10
 
 # docker start $DOCKER_ID_ETH_RPC
@@ -102,7 +102,10 @@ docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
 export NEON_EVM_COMMIT=fdcd80bd38d0fdc4d03fedc6d57b48f590590812
 export REVISION=5dc2bdf1cde01dfd97f313d91a7450a0d952093c
 export FAUCET_COMMIT=19a661e04545f3a880efc04f9b7924ba7c0d92cb
-docker-compose -f docker-compose-neon.yml up --force-recreate
+# set so Ctrl-C force kills containers but not the whole script
+set +e
+docker-compose -f docker-compose-neon2.yml up --force-recreate
+set -e
 
 #curl -s --header "Content-Type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}' http://proxy:8899/solana
 #curl -s --header "Content-Type: application/json" --data '{"method":"eth_syncing","params":[],"id":93,"jsonrpc":"2.0"}' http://host_proxy:8545/solana
