@@ -1,8 +1,8 @@
 (
-images: {
+image_map: {
     "proxy": "neonlabsorg/proxy:34f69dd972e9b76f6dc7886b70c53e0150b5b65e",
 },
-common_env_vars: {
+env_var_map: {
     "common": {
         "SOLANA_URL": "http://host_solana:8899",
         "FAUCET_URL": "http://faucet:3333",
@@ -13,9 +13,10 @@ common_env_vars: {
 },
 containers: {
     "proxy": (
-        image: "proxy",
-        common_env_vars: ["common"],
-        env_vars: {
+        //image: "neonlabsorg/proxy:34f69dd972e9b76f6dc7886b70c53e0150b5b65e"
+        image_ref: "proxy",
+        env_var_ref: ["common"],
+        env_var: {
             "LOG_NEON_CLI_DEBUG": "YES",
             "FUZZING_BLOCKHASH": "YES",
             "CONFIG": "ci",
