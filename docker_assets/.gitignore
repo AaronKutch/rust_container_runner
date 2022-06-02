@@ -9,3 +9,5 @@
 !solana-run-neon.sh
 !neon_proxy.sh
 !sheme.sql
+!run_and_init_db.sh
+!neon_scheme.sql

@@ -1,22 +1,49 @@
 version: "3"
 
 networks:
-  testnet:
+  net:
     external: true
 
 services:
+  solana:
+    container_name: solana
+    image: neonlabsorg/evm_loader:${NEON_EVM_COMMIT}
+    environment:
+      SOLANA_URL: http://solana:8899
+      RUST_LOG: solana_runtime::system_instruction_processor=trace,solana_runtime::message_processor=debug,solana_bpf_loader=debug,solana_rbpf=debug
+    hostname: solana
+    expose:
+      - "8899"
+      - "9900"
+      - "8900"
+      - "8001"
+      - "8001-8009/udp"
+    networks:
+      - net
+    healthcheck:
+      # Must be available from outside (calling without -u causes premature result)
+      test: [ CMD-SHELL, "./wait-for-neon.sh" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    entrypoint: /opt/solana/bin/solana-run-neon.sh
+
   proxy_program_loader:
     container_name: proxy_program_loader
     image: neonlabsorg/evm_loader:ci-proxy-caller-program
     environment:
-      - SOLANA_URL=http://host_solana:8899
+      - SOLANA_URL=http://solana:8899
     networks:
-      - testnet
+      - net
+    depends_on:
+      solana:
+        condition: service_healthy
     command: bash -c "deploy-proxy_program.sh"
 
   postgres:
     container_name: postgres
-    image: ${DB_IMAGE}
+    image: postgres:14.0
     command: postgres -c 'max_connections=1000'
     environment:
       POSTGRES_DB: neon-db
@@ -34,47 +61,30 @@ services:
     ports:
       - "5432"
     networks:
-      - testnet
-
-  #dbcreation:
-  #  container_name: dbcreation
-  #  image: ${PROXY_IMAGE}
-  #  environment:
-  #    SOLANA_URL: http://host_solana:8899
-  #    POSTGRES_HOST: postgres
-  #    POSTGRES_DB: neon-db
-  #    POSTGRES_USER: neon-proxy
-  #    POSTGRES_PASSWORD: neon-proxy-pass
-  #  entrypoint: /bin/sh
-  #  command: proxy/run-dbcreation.sh
-  #  networks:
-  #    - testnet
-  #  depends_on:
-  #    postgres:
-  #      condition: service_healthy
+      - net
 
   dbcreation:
     container_name: dbcreation
-    image: ${PROXY_IMAGE}
+    image: neonlabsorg/proxy:${REVISION}
     environment:
-      SOLANA_URL: http://host_solana:8899
-      POSTGRES_HOST: postgres
+      SOLANA_URL: http://solana:8899
       POSTGRES_DB: neon-db
       POSTGRES_USER: neon-proxy
       POSTGRES_PASSWORD: neon-proxy-pass
+      POSTGRES_HOST: postgres
     entrypoint: /bin/sh
-    command: sleep 25
+    command: proxy/run-dbcreation.sh
     networks:
-      - testnet
+      - net
     depends_on:
       postgres:
         condition: service_healthy
 
   proxy:
     container_name: proxy
-    image: ${PROXY_IMAGE}
+    image: neonlabsorg/proxy:${REVISION}
     environment:
-      SOLANA_URL: http://host_solana:8899
+      SOLANA_URL: http://solana:8899
       FAUCET_URL: http://faucet:3333
       POSTGRES_DB: neon-db
       POSTGRES_USER: neon-proxy
@@ -93,6 +103,8 @@ services:
       EVM_LOADER: 53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io
     hostname: proxy
     depends_on:
+      solana:
+        condition: service_healthy
       dbcreation:
         condition: service_completed_successfully
     ports:
@@ -101,7 +113,7 @@ services:
       - "8888"
       - "9090"
     networks:
-      - testnet
+      - net
     entrypoint: proxy/run-test-proxy.sh
     healthcheck:
       test: [ CMD-SHELL, "/opt/health_check_proxy.sh" ]
@@ -112,12 +124,12 @@ services:
 
   deploy_contracts:
     container_name: deploy_contracts
-    image: ${EVM_LOADER_IMAGE}
+    image: neonlabsorg/evm_loader:${NEON_EVM_COMMIT}
     environment:
-      - SOLANA_URL=http://host_solana:8899
+      - SOLANA_URL=http://solana:8899
       - SPL_TOKEN_AUTHORITY=/opt/contracts/ci-tokens/owner-keypair.json
     networks:
-      - testnet
+      - net
     depends_on:
       proxy:
         condition: service_healthy
@@ -125,18 +137,18 @@ services:
 
   faucet:
     container_name: faucet
-    image: ${FAUCET_IMAGE}
+    image: neonlabsorg/faucet:${FAUCET_COMMIT}
     environment:
       FAUCET_RPC_BIND: 0.0.0.0
       FAUCET_RPC_PORT: 3333
       FAUCET_RPC_ALLOWED_ORIGINS: '["http://airdropper"]'
       FAUCET_WEB3_ENABLE: 'true'
-      WEB3_RPC_URL: http://host_solana:8899
+      WEB3_RPC_URL: http://solana:8899
       WEB3_PRIVATE_KEY: 0x4deacb079b4714c38f39508aa8900039f2721ed8686835d43347ba9267da767b
       NEON_ERC20_TOKENS: '["0xB521b9F3484deF53545F276F1DAA50ef0Ca82E2d", "0x8a2a66CA0E5D491A001957edD45A6350bC76D708", "0x914782059DC42d4E590aeFCfdbF004B2EcBB9fAA", "0x7A7510b9b18241C788a7aAE8299D1fA6010D8128"]'
       NEON_ERC20_MAX_AMOUNT: 1000
       FAUCET_SOLANA_ENABLE: 'true'
-      SOLANA_URL: http://host_solana:8899
+      SOLANA_URL: http://solana:8899
       NEON_OPERATOR_KEYFILE: /root/.config/solana/id.json
       NEON_ETH_MAX_AMOUNT: 50000
       TEST_FAUCET_INIT_NEON_BALANCE: 100000000
@@ -150,21 +162,23 @@ services:
     expose:
       - "3333"
     networks:
-      - testnet
+      - net
     entrypoint: ./run-test-faucet.sh
     depends_on:
+      solana:
+        condition: service_healthy
       deploy_contracts:
         condition: service_completed_successfully
 
   airdropper:
     container_name: airdropper
-    image: ${PROXY_IMAGE}
+    image: neonlabsorg/proxy:${REVISION}
     environment:
       POSTGRES_DB: neon-db
       POSTGRES_USER: neon-proxy
       POSTGRES_PASSWORD: neon-proxy-pass
       POSTGRES_HOST: postgres
-      SOLANA_URL: http://host_solana:8899
+      SOLANA_URL: http://solana:8899
       FAUCET_URL: http://faucet:3333
       NEON_CLI_TIMEOUT: 0.9
       INDEXER_ERC20_WRAPPER_WHITELIST: ANY
@@ -176,8 +190,10 @@ services:
     hostname: airdropper
     entrypoint: ./run-airdropper.sh
     networks:
-      - testnet
+      - net
     depends_on:
+      solana:
+        condition: service_healthy
       dbcreation:
         condition: service_completed_successfully
       faucet:
@@ -185,9 +201,9 @@ services:
 
   indexer:
     container_name: indexer
-    image: ${PROXY_IMAGE}
+    image: neonlabsorg/proxy:${REVISION}
     environment:
-      SOLANA_URL: http://host_solana:8899
+      SOLANA_URL: http://solana:8899
       POSTGRES_DB: neon-db
       POSTGRES_USER: neon-proxy
       POSTGRES_PASSWORD: neon-proxy-pass
@@ -197,10 +213,12 @@ services:
       EVM_LOADER: 53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io
     hostname: indexer
     depends_on:
+      solana:
+        condition: service_healthy
       dbcreation:
         condition: service_completed_successfully
     expose:
       - "8887"
     networks:
-      - testnet
+      - net
     entrypoint: proxy/run-indexer.sh

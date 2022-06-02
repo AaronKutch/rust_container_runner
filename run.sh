@@ -45,32 +45,35 @@ PATH=$PATH:$HOME/.cargo/bin CROSS_COMPILE=$CROSS_COMPILE cargo build --release -
 cp $REPOFOLDER/target/$RCR_TARGET/release/eth_rpc $DOCKERFOLDER/eth_rpc
 cp $REPOFOLDER/target/$RCR_TARGET/release/tcp $DOCKERFOLDER/tcp
 
-DB_IMAGE="postgres:14.0"
-EVM_LOADER_IMAGE="neonlabsorg/evm_loader:d10ea83c02257b885d71fb3d62d64f9d28f4507d"
-PROXY_IMAGE="neonlabsorg/proxy:34f69dd972e9b76f6dc7886b70c53e0150b5b65e"
-FAUCET_IMAGE="neonlabsorg/faucet:19a661e04545f3a880efc04f9b7924ba7c0d92cb"
+#DB_IMAGE="postgres:14.0"
+#EVM_LOADER_IMAGE="neonlabsorg/evm_loader:fdcd80bd38d0fdc4d03fedc6d57b48f590590812"
+#PROXY_IMAGE="neonlabsorg/proxy:5dc2bdf1cde01dfd97f313d91a7450a0d952093c"
+#FAUCET_IMAGE="neonlabsorg/faucet:19a661e04545f3a880efc04f9b7924ba7c0d92cb"
+
+export NEON_EVM_COMMIT=fdcd80bd38d0fdc4d03fedc6d57b48f590590812
+export REVISION=5dc2bdf1cde01dfd97f313d91a7450a0d952093c
+export FAUCET_COMMIT=19a661e04545f3a880efc04f9b7924ba7c0d92cb
 
 docker rm -f rust_test_runner_image
 docker build -t rust_test_runner_image $PLATFORM_CMD .
 
-# docker-compose has too many problems with conditionally propogating env variables to it and
-# subcommands, so we manually compose a network
-
 set +e
-docker network rm testnet
+docker network rm net
 set -e
 # insure everything is self contained
-docker network create --internal testnet
+docker network create --internal net
+
+docker-compose up -d
+
 
 #DOCKER_ID_TCP=$(docker create --rm --network=testnet --hostname="host_tcp" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_TCP})
 
 # NOTE: this local setup is different from the production setup.
 # https://docs.neon-labs.org/docs/developing/dev_environment/solana_cluster/cluster_installation
 
-# note: change `neon_proxy.sh` if the variables here are changed
-#DOCKER_ID_DB=$(docker create --network=testnet --hostname="host_db" --name="host_db" ${PLATFORM_CMD} --env="POSTGRES_DB=root" --env="POSTGRES_USER=neon-proxy" --env="POSTGRES_PASSWORD=neon-proxy-pass" ${DB_IMAGE})
+# DOCKER_ID_DB=$(docker create --network=testnet --hostname="host_db" --name="host_db" ${PLATFORM_CMD} --env="POSTGRES_DB=neon-db" --env="POSTGRES_USER=neon-proxy" --env="POSTGRES_PASSWORD=neon-proxy-pass" ${DB_IMAGE})
 
-DOCKER_ID_SOLANA=$(docker create --network=testnet --hostname="host_solana" --name="host_solana" --env="RUST_LOG=solana_runtime::system_instruction_processor=info,solana_runtime::message_processor=info,solana_bpf_loader=info,solana_rbpf=info" --env="SOLANA_URL=http://host_solana:8899" --health-cmd=[CMD-SHELL,"./wait-for-neon.sh"] --health-interval=5s --health-timeout=5s --health-retries=20 --health-start-period=5s ${VOLUME_ARGS} ${EVM_LOADER_IMAGE} bash /rust_container_runner/docker_assets/solana-run-neon.sh)
+# DOCKER_ID_SOLANA=$(docker create --network=testnet --hostname="host_solana" --name="host_solana" --env="RUST_LOG=solana_runtime::system_instruction_processor=info,solana_runtime::message_processor=info,solana_bpf_loader=info,solana_rbpf=info" --env="SOLANA_URL=http://host_solana:8899" --health-cmd=[CMD-SHELL,"./wait-for-neon.sh"] --health-interval=5s --health-timeout=5s --health-retries=20 --health-start-period=5s ${VOLUME_ARGS} ${EVM_LOADER_IMAGE} bash /rust_container_runner/docker_assets/solana-run-neon.sh)
 #--workdir="/"
 
 #DOCKER_ID_FAUCET=$(docker create --network=testnet --hostname="host_faucet" --name="host_faucet" ${PLATFORM_CMD} --env="FAUCET_RPC_BIND=0.0.0.0" --env="FAUCET_RPC_PORT=3333" --env="SOLANA_URL=http://host_solana:8899" --env="NEON_ETH_MAX_AMOUNT=900000000" --env="EVM_LOADER=53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io" --env="FAUCET_WEB3_ENABLE=false" --env="FAUCET_SOLANA_ENABLE=true" --env="NEON_OPERATOR_KEYFILE=/root/.config/solana/id.json" --env="SOLANA_COMMITMENT=confirmed" --env="TEST_FAUCET_INIT_NEON_BALANCE=100000000" --env="NEON_TOKEN_MINT=HPsV9Deocecw3GeZv1FkAPNCBRfuVyfw9MMwjwRe1xaU" --env="NEON_TOKEN_MINT_DECIMALS=9" --env="SOLANA_COMMITMENT=confirmed" --env="NEON_ERC20_TOKENS=[\"0xB521b9F3484deF53545F276F1DAA50ef0Ca82E2d\",\"0x8a2a66CA0E5D491A001957edD45A6350bC76D708\",\"0x914782059DC42d4E590aeFCfdbF004B2EcBB9fAA\",\"0x7A7510b9b18241C788a7aAE8299D1fA6010D8128\"]" --entrypoint="./run-test-faucet.sh" ${VOLUME_ARGS} ${FAUCET_IMAGE})
@@ -79,7 +82,7 @@ DOCKER_ID_SOLANA=$(docker create --network=testnet --hostname="host_solana" --na
 # database creation is also handled here
 #DOCKER_ID_PROXY=$(docker create --network=testnet --hostname="host_proxy" --name="host_proxy" ${PLATFORM_CMD} --env="SOLANA_URL=http://host_solana:8899" --env="EVM_LOADER=53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io" --entrypoint="" ${VOLUME_ARGS} ${PROXY_IMAGE} bash /rust_container_runner/docker_assets/neon_proxy.sh)
 
-DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" --name="host_eth_rpc" ${PLATFORM_CMD} ${VOLUME_ARGS} rust_test_runner_image ${RUN_ARGS_ETH_RPC})
+# DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" --name="host_eth_rpc" ${PLATFORM_CMD} ${VOLUME_ARGS} rust_test_runner_image ${RUN_ARGS_ETH_RPC})
 
 # delayed start to wait for everything to be pulled and created
 #docker start $DOCKER_ID_TCP
@@ -88,31 +91,31 @@ DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" --
 #docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
 #docker start $DOCKER_ID_DB
 #docker attach $DOCKER_ID_DB &> $DOCKERFOLDER/host_db.log &
-docker start $DOCKER_ID_SOLANA
-docker attach $DOCKER_ID_SOLANA &> $DOCKERFOLDER/host_solana.log &
-docker exec host_solana ./wait-for-neon.sh 100
+# docker start $DOCKER_ID_SOLANA
+# docker attach $DOCKER_ID_SOLANA &> $DOCKERFOLDER/host_solana.log &
+# docker exec host_solana ./wait-for-neon.sh 100
 #docker start $DOCKER_ID_FAUCET
 #docker attach $DOCKER_ID_FAUCET &> $DOCKERFOLDER/host_faucet.log &
 #docker start $DOCKER_ID_PROXY
 #docker attach $DOCKER_ID_PROXY &> $DOCKERFOLDER/host_proxy.log &
 
-DB_IMAGE=$DB_IMAGE EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE FAUCET_IMAGE=$FAUCET_IMAGE docker-compose up &
+# DB_IMAGE=$DB_IMAGE EVM_LOADER_IMAGE=$EVM_LOADER_IMAGE PROXY_IMAGE=$PROXY_IMAGE FAUCET_IMAGE=$FAUCET_IMAGE docker-compose up &> $DOCKERFOLDER/host_docker_compose.log &
 
-sleep 10
+# sleep 10
 
-docker start $DOCKER_ID_ETH_RPC
-docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
+# docker start $DOCKER_ID_ETH_RPC
+# docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
 
-read -p "Press Return to Close..."
+# read -p "Press Return to Close..."
 
-docker-compose down
+# docker-compose down
 
 #curl -s --header "Content-Type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}' http://host_proxy:8545/solana
 #curl -s --header "Content-Type: application/json" --data '{"method":"eth_syncing","params":[],"id":93,"jsonrpc":"2.0"}' http://host_proxy:8545/solana
 
 #docker rm -f $DOCKER_ID_TCP
 #docker rm -f $DOCKER_ID_DB
-docker rm -f $DOCKER_ID_SOLANA
+# docker rm -f $DOCKER_ID_SOLANA
 #docker rm -f $DOCKER_ID_FAUCET
 #docker rm -f $DOCKER_ID_PROXY
-docker rm -f $DOCKER_ID_ETH_RPC
+# docker rm -f $DOCKER_ID_ETH_RPC
