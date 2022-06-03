@@ -13,3 +13,5 @@ RUN dnf install -y git make gcc gcc-c++ which iproute iputils procps-ng vim-mini
 
 #ADD https://github.com/AaronKutch/go-opera/releases/download/onomy_release_94738741/opera.tar.gz /opera/
 #RUN cd /opera && tar -xvf * && mv /opera/opera /usr/bin/opera
+
+COPY --from=purestake/moonbeam:sha-30f59a18 /moonbeam/moonbeam /usr/bin/moonbeam

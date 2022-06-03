@@ -49,7 +49,7 @@ cp $REPOFOLDER/target/$RCR_TARGET/release/tcp $DOCKERFOLDER/tcp
 #EVM_LOADER_IMAGE="neonlabsorg/evm_loader:d10ea83c02257b885d71fb3d62d64f9d28f4507d"
 #PROXY_IMAGE="neonlabsorg/proxy:5fe50d3b6d050fc6c44c6b0e5097de89ea3da2c5"
 
-MOONBEAM_IMAGE="purestake/moonbeam:sha-da03fdc2"
+MOONBEAM_IMAGE="purestake/moonbeam:sha-30f59a18"
 
 docker rm -f rust_test_runner_image
 docker build -t rust_test_runner_image $PLATFORM_CMD .
@@ -72,11 +72,12 @@ docker network create --internal testnet
 
 #DOCKER_ID_PROXY=$(docker create --network=testnet --hostname="host_proxy" --name="host_proxy" ${PLATFORM_CMD} --env="SOLANA_URL=http://host_solana:8899" --env="EVM_LOADER=53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io" --entrypoint="" ${VOLUME_ARGS} ${PROXY_IMAGE} bash /rust_container_runner/docker_assets/neon_proxy.sh)
 
-DOCKER_ID_MOONBEAM=$(docker create --network=testnet --hostname="host_moonbeam" --name="host_moonbeam" ${PLATFORM_CMD} ${VOLUME_ARGS} ${MOONBEAM_IMAGE} --dev)
+#DOCKER_ID_MOONBEAM=$(docker create --network=testnet --hostname="host_moonbeam" --name="host_moonbeam"  ${PLATFORM_CMD} ${VOLUME_ARGS} ${MOONBEAM_IMAGE} --dev)
 #ipc-path rpc-cors  rpc-port
 
-DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" --name="host_eth_rpc" ${PLATFORM_CMD} ${VOLUME_ARGS} rust_test_runner_image ${RUN_ARGS_ETH_RPC})
+#DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" --name="host_eth_rpc" ${PLATFORM_CMD} ${VOLUME_ARGS} rust_test_runner_image ${RUN_ARGS_ETH_RPC})
 
+docker run --rm --network=testnet --hostname="host_eth_rpc" --name="host_eth_rpc" ${PLATFORM_CMD} ${VOLUME_ARGS} rust_test_runner_image ${RUN_ARGS_ETH_RPC}
 
 # delayed start to wait for everything to be pulled and created
 #docker start $DOCKER_ID_TCP
@@ -94,17 +95,19 @@ DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" --
 #docker start $DOCKER_ID_ETH_RPC
 #docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log
 
-docker start $DOCKER_ID_MOONBEAM
-docker attach $DOCKER_ID_MOONBEAM &> $DOCKERFOLDER/host_moonbeam.log &
-sleep 5
-docker start $DOCKER_ID_ETH_RPC
-docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
+#docker start $DOCKER_ID_MOONBEAM
+#docker attach $DOCKER_ID_MOONBEAM &> $DOCKERFOLDER/host_moonbeam.log &
+#sleep 7
+#docker start $DOCKER_ID_ETH_RPC
+#docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
 
-read -p "Press Return to Close..."
+#read -p "Press Return to Close..."
+#curl -s --header "Content-Type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}' http://localhost:8545
+
 
 #docker rm -f $DOCKER_ID_TCP
 #docker rm -f $DOCKER_ID_DB
 #docker rm -f $DOCKER_ID_SOLANA
 #docker rm -f $DOCKER_ID_PROXY
-docker rm -f $DOCKER_ID_MOONBEAM
-docker rm -f $DOCKER_ID_ETH_RPC
+#docker rm -f $DOCKER_ID_MOONBEAM
+#docker rm -f $DOCKER_ID_ETH_RPC

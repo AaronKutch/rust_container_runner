@@ -92,4 +92,5 @@ pushd /
 #    --http.api="eth,debug,net,admin,web3,personal,txpool,ftm,dag" \
 #    --datadir="/opera_datadir" &> /rust_container_runner/docker_assets/opera.log &
 
+moonbeam --dev --rpc-port 8545 &
 RUST_LOG="TRACE" RUST_BACKTRACE=full /rust_container_runner/docker_assets/eth_rpc
