@@ -93,4 +93,10 @@ pushd /
 #    --datadir="/opera_datadir" &> /rust_container_runner/docker_assets/opera.log &
 
 moonbeam --dev --rpc-port 8545 &
+echo "waiting for moonbeam to come online"
+WAIT_FOR_PORT=1 /rust_container_runner/docker_assets/eth_rpc
+
+# transfer funds from Alith account to account used by bridge
+curl -s --header "content-type: application/json" --data "{\"id\":10,\"jsonrpc\":\"2.0\",\"method\":\"eth_sendRawTransaction\",\"params\":[\"0xf870808506fc23ac00825dc094bf660843528035a5a4921534e156a27e64b231fe8ae8ef1e96ae389780000080820a25a03c8d2c425d0b408b4b9084de247f9051854598dc4a3ab0803ee0aa4fe20a8c1aa06e12623f17b9c830c696a538cad8af562ec750e4fd9bdc94302b29fe871495cf\"]}" http://localhost:8545
+
 RUST_LOG="TRACE" RUST_BACKTRACE=full /rust_container_runner/docker_assets/eth_rpc
