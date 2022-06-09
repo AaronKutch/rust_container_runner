@@ -110,6 +110,16 @@ pub async fn main() {
     //    .await
     //    .unwrap();
 
+    dbg!(web3.eth_estimate_gas(web30::types::TransactionRequest {
+        from: None,
+        to: *MINER_ADDRESS,
+        gas: None,
+        gas_price: None,
+        value: None,
+        data: None,
+        nonce: None,
+    }).await.unwrap());
+
     dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap()
