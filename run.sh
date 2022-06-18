@@ -49,7 +49,7 @@ cp $REPOFOLDER/target/$RCR_TARGET/release/tcp $DOCKERFOLDER/tcp
 #EVM_LOADER_IMAGE="neonlabsorg/evm_loader:d10ea83c02257b885d71fb3d62d64f9d28f4507d"
 #PROXY_IMAGE="neonlabsorg/proxy:5fe50d3b6d050fc6c44c6b0e5097de89ea3da2c5"
 
-MOONBEAM_IMAGE="purestake/moonbeam:sha-30f59a18"
+#MOONBEAM_IMAGE="purestake/moonbeam:sha-2007f749"
 
 docker rm -f rust_test_runner_image
 docker build -t rust_test_runner_image $PLATFORM_CMD .
