@@ -120,6 +120,12 @@ pub async fn main() {
         nonce: None,
     }).await.unwrap());
 
+    send_eth_bulk(
+        u256!(1),
+        &[EthAddress::from_str("0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap()],
+        &web3,
+    ).await;
+
     dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap()

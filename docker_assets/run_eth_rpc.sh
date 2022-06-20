@@ -101,13 +101,13 @@ rams":[],"id":93,"jsonrpc":"2.0"}' http://localhost:8545); do
     sleep 1
 done
 
+#curl -s --header "content-type: application/json" --data "{\"id\":10,\"jsonrpc\":\"2.0\",\"method\":\"eth_chainId\",\"params\":[]}" http://localhost:8545
+
 # transfer funds from Alith account to account used by bridge
 #curl -s --header "content-type: application/json" --data "{\"id\":10,\"jsonrpc\":\"2.0\",\"method\":\"eth_sendRawTransaction\",\"params\":[\"0xf870808506fc23ac00825dc094bf660843528035a5a4921534e156a27e64b231fe8ae8ef1e96ae389780000080820a25a03c8d2c425d0b408b4b9084de247f9051854598dc4a3ab0803ee0aa4fe20a8c1aa06e12623f17b9c830c696a538cad8af562ec750e4fd9bdc94302b29fe871495cf\"]}" http://localhost:8545
-sleep 1000
+#sleep 1000
 
 #curl -s --header "content-type: application/json" --data "{\"id\":10,\"jsonrpc\":\"2.0\",\"method\":\"eth_getBlockByNumber\",\"params\":[\"latest\",false]}" http://localhost:8545
-
-curl -s --header "content-type: application/json" --data "{\"id\":10,\"jsonrpc\":\"2.0\",\"method\":\"eth_chainId\",\"params\":[]}" http://localhost:8545
 
 #curl -s --header "content-type: application/json" --data '{"jsonrpc":"2.0","result":{"author":"0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac","baseFeePerGas":"0x3b9aca00","difficulty":"0x0","extraData":"0x","gasLimit":"0xe4e1c0","gasUsed":"0x0","hash":"0x5d74beb91b07d959fc0173e6ccdaf0cecd71c111a8a002c33c4262f3f8dbd35d","logsBloom":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","miner":"0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac","number":"0x8","parentHash":"0xa2ce0891a1f1de59cc3923cbaa66d38f6f40ac4f2877f7a90636992c27e1db48","receiptsRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","sealFields":["0x0000000000000000000000000000000000000000000000000000000000000000","0x0000000000000000"],"sha3Uncles":"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347","size":"0x1fe","stateRoot":"0x664b7374999c57cf45e312d2248f75a49a5ce103a73c2e975c8dad3d2dcabb9d","timestamp":"0x62acf17e","totalDifficulty":"0x0","transactions":[],"transactionsRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","uncles":[]},"id":25}' http://localhost:8545
 
