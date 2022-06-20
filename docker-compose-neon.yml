@@ -51,7 +51,7 @@ services:
       POSTGRES_PASSWORD: neon-proxy-pass
     hostname: postgres
     healthcheck:
-      test: [ CMD-SHELL, "pg_isready -h postgres -p 5432" ]
+      test: [ CMD-SHELL, "pg_isready -h postgres -p 5432 -U neon-proxy" ]
       interval: 3s
       timeout: 3s
       retries: 10
@@ -93,7 +93,7 @@ services:
       FUZZING_BLOCKHASH: "YES"
       CONFIG: ci
       #PP_SOLANA_URL: ${CI_PP_SOLANA_URL:-https://api.devnet.solana.com}
-      PYTH_MAPPING_ACCOUNT: ${CI_PYTH_MAPPING_ACCOUNT:-BmA9Z6FjioHJPpjT39QazZyhDRUdZy2ezwx4GiDdE2u2}
+      #PYTH_MAPPING_ACCOUNT: ${CI_PYTH_MAPPING_ACCOUNT:-BmA9Z6FjioHJPpjT39QazZyhDRUdZy2ezwx4GiDdE2u2}
       MIN_OPERATOR_BALANCE_TO_WARN: 4565760000 # = 913152000 * 5 (5 storage accounts) = 4.56576 SOL
       MIN_OPERATOR_BALANCE_TO_ERR: 913152000 # = solana rent 131072 (= Rent-exempt minimum: 0.913152 SOL) SOLs to create a storage
       MINIMAL_GAS_PRICE: 1
@@ -185,7 +185,7 @@ services:
       PRICE_UPDATE_INTERVAL: 10
       START_SLOT: LATEST
       #PP_SOLANA_URL: ${PP_SOLANA_URL:-https://api.devnet.solana.com}
-      PYTH_MAPPING_ACCOUNT: ${CI_PYTH_MAPPING_ACCOUNT:-BmA9Z6FjioHJPpjT39QazZyhDRUdZy2ezwx4GiDdE2u2}
+      #PYTH_MAPPING_ACCOUNT: ${CI_PYTH_MAPPING_ACCOUNT:-BmA9Z6FjioHJPpjT39QazZyhDRUdZy2ezwx4GiDdE2u2}
       MAX_CONFIDENCE_INTERVAL: 0.01
     hostname: airdropper
     entrypoint: ./run-airdropper.sh

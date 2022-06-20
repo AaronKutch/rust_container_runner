@@ -99,16 +99,21 @@ docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
 # docker start $DOCKER_ID_ETH_RPC
 # docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
 
-export NEON_EVM_COMMIT=fdcd80bd38d0fdc4d03fedc6d57b48f590590812
-export REVISION=5dc2bdf1cde01dfd97f313d91a7450a0d952093c
+export NEON_EVM_COMMIT="v0.8.1"
+export REVISION="v0.8.1"
 export FAUCET_COMMIT=19a661e04545f3a880efc04f9b7924ba7c0d92cb
 # set so Ctrl-C force kills containers but not the whole script
 set +e
-docker-compose -f docker-compose-neon2.yml up --force-recreate
+docker-compose -f docker-compose-neon.yml up --force-recreate
 set -e
 
-#curl -s --header "Content-Type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}' http://proxy:8899/solana
-#curl -s --header "Content-Type: application/json" --data '{"method":"eth_syncing","params":[],"id":93,"jsonrpc":"2.0"}' http://host_proxy:8545/solana
+read -p "Press enter to end"
+
+docker-compose -f docker-compose-neon.yml down
+
+#curl --header "Content-Type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}' http://proxy:9090/solana
+#curl --header "Content-Type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}' http://localhost:9090/solana
+#curl --header "Content-Type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}' http://solana:8899/solana
 
 docker rm -f $DOCKER_ID_TCP
 #docker rm -f $DOCKER_ID_DB
