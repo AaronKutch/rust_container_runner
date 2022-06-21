@@ -5,6 +5,19 @@ networks:
     external: true
 
 services:
+  test:
+    container_name: test
+    build:
+      context: .
+      dockerfile: dockerfile
+    hostname: test
+    depends_on:
+      faucet:
+        condition: service_started
+    networks:
+      - net
+    entrypoint: [ "bash", "/run_eth_rpc.sh" ]
+
   solana:
     container_name: solana
     image: neonlabsorg/evm_loader:${NEON_EVM_COMMIT}
@@ -29,17 +42,17 @@ services:
       start_period: 5s
     entrypoint: /opt/solana/bin/solana-run-neon.sh
 
-  proxy_program_loader:
-    container_name: proxy_program_loader
-    image: neonlabsorg/evm_loader:ci-proxy-caller-program
-    environment:
-      - SOLANA_URL=http://solana:8899
-    networks:
-      - net
-    depends_on:
-      solana:
-        condition: service_healthy
-    command: bash -c "deploy-proxy_program.sh"
+#  proxy_program_loader:
+#    container_name: proxy_program_loader
+#    image: neonlabsorg/evm_loader:ci-proxy-caller-program
+#    environment:
+#      - SOLANA_URL=http://solana:8899
+#    networks:
+#      - net
+#    depends_on:
+#      solana:
+#        condition: service_healthy
+#    command: bash -c "deploy-proxy_program.sh"
 
   postgres:
     container_name: postgres
@@ -141,17 +154,17 @@ services:
     environment:
       FAUCET_RPC_BIND: 0.0.0.0
       FAUCET_RPC_PORT: 3333
-      FAUCET_RPC_ALLOWED_ORIGINS: '["http://airdropper"]'
+      FAUCET_RPC_ALLOWED_ORIGINS: '["http://airdropper","http://test","http://proxy"]'
       FAUCET_WEB3_ENABLE: 'true'
-      WEB3_RPC_URL: http://solana:8899
+      WEB3_RPC_URL: http://proxy:8899
       WEB3_PRIVATE_KEY: 0x4deacb079b4714c38f39508aa8900039f2721ed8686835d43347ba9267da767b
       NEON_ERC20_TOKENS: '["0xB521b9F3484deF53545F276F1DAA50ef0Ca82E2d", "0x8a2a66CA0E5D491A001957edD45A6350bC76D708", "0x914782059DC42d4E590aeFCfdbF004B2EcBB9fAA", "0x7A7510b9b18241C788a7aAE8299D1fA6010D8128"]'
       NEON_ERC20_MAX_AMOUNT: 1000
       FAUCET_SOLANA_ENABLE: 'true'
       SOLANA_URL: http://solana:8899
       NEON_OPERATOR_KEYFILE: /root/.config/solana/id.json
-      NEON_ETH_MAX_AMOUNT: 50000
-      TEST_FAUCET_INIT_NEON_BALANCE: 100000000
+      NEON_ETH_MAX_AMOUNT: 900000001
+      TEST_FAUCET_INIT_NEON_BALANCE: 900000001
       EVM_LOADER: 53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io
       NEON_TOKEN_MINT: HPsV9Deocecw3GeZv1FkAPNCBRfuVyfw9MMwjwRe1xaU
       NEON_TOKEN_MINT_DECIMALS: 9
@@ -170,55 +183,55 @@ services:
       deploy_contracts:
         condition: service_completed_successfully
 
-  airdropper:
-    container_name: airdropper
-    image: neonlabsorg/proxy:${REVISION}
-    environment:
-      POSTGRES_DB: neon-db
-      POSTGRES_USER: neon-proxy
-      POSTGRES_PASSWORD: neon-proxy-pass
-      POSTGRES_HOST: postgres
-      SOLANA_URL: http://solana:8899
-      FAUCET_URL: http://faucet:3333
-      NEON_CLI_TIMEOUT: 0.9
-      INDEXER_ERC20_WRAPPER_WHITELIST: ANY
-      PRICE_UPDATE_INTERVAL: 10
-      START_SLOT: LATEST
-      #PP_SOLANA_URL: ${PP_SOLANA_URL:-https://api.devnet.solana.com}
-      #PYTH_MAPPING_ACCOUNT: ${CI_PYTH_MAPPING_ACCOUNT:-BmA9Z6FjioHJPpjT39QazZyhDRUdZy2ezwx4GiDdE2u2}
-      MAX_CONFIDENCE_INTERVAL: 0.01
-    hostname: airdropper
-    entrypoint: ./run-airdropper.sh
-    networks:
-      - net
-    depends_on:
-      solana:
-        condition: service_healthy
-      dbcreation:
-        condition: service_completed_successfully
-      faucet:
-        condition: service_started
+#  airdropper:
+#    container_name: airdropper
+#    image: neonlabsorg/proxy:${REVISION}
+#    environment:
+#      POSTGRES_DB: neon-db
+#      POSTGRES_USER: neon-proxy
+#      POSTGRES_PASSWORD: neon-proxy-pass
+#      POSTGRES_HOST: postgres
+#      SOLANA_URL: http://solana:8899
+#      FAUCET_URL: http://faucet:3333
+#      NEON_CLI_TIMEOUT: 0.9
+#      INDEXER_ERC20_WRAPPER_WHITELIST: ANY
+#      PRICE_UPDATE_INTERVAL: 10
+#      START_SLOT: LATEST
+#      #PP_SOLANA_URL: ${PP_SOLANA_URL:-https://api.devnet.solana.com}
+#      #PYTH_MAPPING_ACCOUNT: ${CI_PYTH_MAPPING_ACCOUNT:-BmA9Z6FjioHJPpjT39QazZyhDRUdZy2ezwx4GiDdE2u2}
+#      MAX_CONFIDENCE_INTERVAL: 0.01
+#    hostname: airdropper
+#    entrypoint: ./run-airdropper.sh
+#    networks:
+#      - net
+#    depends_on:
+#      solana:
+#        condition: service_healthy
+#      dbcreation:
+#        condition: service_completed_successfully
+#      faucet:
+#        condition: service_started
 
-  indexer:
-    container_name: indexer
-    image: neonlabsorg/proxy:${REVISION}
-    environment:
-      SOLANA_URL: http://solana:8899
-      POSTGRES_DB: neon-db
-      POSTGRES_USER: neon-proxy
-      POSTGRES_PASSWORD: neon-proxy-pass
-      GATHER_STATISTICS: "YES"
-      LOG_FULL_OBJECT_INFO: "YES"
-      CONFIG: ci
-      EVM_LOADER: 53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io
-    hostname: indexer
-    depends_on:
-      solana:
-        condition: service_healthy
-      dbcreation:
-        condition: service_completed_successfully
-    expose:
-      - "8887"
-    networks:
-      - net
-    entrypoint: proxy/run-indexer.sh
+#  indexer:
+#    container_name: indexer
+#    image: neonlabsorg/proxy:${REVISION}
+#    environment:
+#      SOLANA_URL: http://solana:8899
+#      POSTGRES_DB: neon-db
+#      POSTGRES_USER: neon-proxy
+#      POSTGRES_PASSWORD: neon-proxy-pass
+#      GATHER_STATISTICS: "YES"
+#      LOG_FULL_OBJECT_INFO: "YES"
+#      CONFIG: ci
+#      EVM_LOADER: 53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io
+#    hostname: indexer
+#    depends_on:
+#      solana:
+#        condition: service_healthy
+#      dbcreation:
+#        condition: service_completed_successfully
+#    expose:
+#      - "8887"
+#    networks:
+#      - net
+#    entrypoint: proxy/run-indexer.sh

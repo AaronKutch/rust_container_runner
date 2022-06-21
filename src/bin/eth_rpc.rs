@@ -37,8 +37,8 @@ pub async fn main() {
     //let rpc_url = "http://localhost:8545/ext/bc/C/rpc";
     //let rpc_host = "127.0.0.1:8899";
     // neon
-    let rpc_url = "http://host_proxy:8545/solana";
-    let rpc_host = "http://host_proxy:8545";
+    let rpc_url = "http://proxy:9090/solana";
+    let rpc_host = "http://proxy:9090";
 
     // wait for the server to be ready
     for _ in 0..40 {
@@ -163,7 +163,7 @@ pub async fn send_eth_bulk(amount: Uint256, destinations: &[EthAddress], web3: &
             to: *address,
             nonce,
             gas_price: HIGH_GAS_PRICE,
-            gas_limit: u256!(24000),
+            gas_limit: u256!(15790400),
             value: amount,
             data: Vec::new(),
             signature: None,

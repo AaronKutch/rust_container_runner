@@ -50,10 +50,10 @@ cp $REPOFOLDER/target/$RCR_TARGET/release/tcp $DOCKERFOLDER/tcp
 #PROXY_IMAGE="neonlabsorg/proxy:5dc2bdf1cde01dfd97f313d91a7450a0d952093c"
 #FAUCET_IMAGE="neonlabsorg/faucet:19a661e04545f3a880efc04f9b7924ba7c0d92cb"
 
-docker rm -f rust_test_runner_image
-docker-compose -f docker-compose-neon2.yml down
+#docker rm -f rust_test_runner_image
+#docker-compose -f docker-compose-neon2.yml down
 
-docker build -t rust_test_runner_image $PLATFORM_CMD .
+#docker build -t rust_test_runner_image $PLATFORM_CMD .
 
 set +e
 docker network rm net
@@ -61,7 +61,7 @@ set -e
 # insure everything is self contained
 docker network create --internal net
 
-DOCKER_ID_TCP=$(docker create --rm --network=net --hostname="host_tcp" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_TCP})
+#DOCKER_ID_TCP=$(docker create --rm --network=net --hostname="host_tcp" ${VOLUME_ARGS} ${PLATFORM_CMD} rust_test_runner_image ${RUN_ARGS_TCP})
 
 # NOTE: this local setup is different from the production setup.
 # https://docs.neon-labs.org/docs/developing/dev_environment/solana_cluster/cluster_installation
@@ -77,13 +77,13 @@ DOCKER_ID_TCP=$(docker create --rm --network=net --hostname="host_tcp" ${VOLUME_
 # database creation is also handled here
 #DOCKER_ID_PROXY=$(docker create --network=testnet --hostname="host_proxy" --name="host_proxy" ${PLATFORM_CMD} --env="SOLANA_URL=http://host_solana:8899" --env="EVM_LOADER=53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io" --entrypoint="" ${VOLUME_ARGS} ${PROXY_IMAGE} bash /rust_container_runner/docker_assets/neon_proxy.sh)
 
-# DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" --name="host_eth_rpc" ${PLATFORM_CMD} ${VOLUME_ARGS} rust_test_runner_image ${RUN_ARGS_ETH_RPC})
+#DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" --name="host_eth_rpc" ${PLATFORM_CMD} ${VOLUME_ARGS} rust_test_runner_image ${RUN_ARGS_ETH_RPC})
 
 # delayed start to wait for everything to be pulled and created
-docker start $DOCKER_ID_TCP
+#docker start $DOCKER_ID_TCP
 # there is unfortunately a small period of time where stdout could be lost, but there seems to be no
 # way around this, redirecting anywhere else gets the wrong stdout
-docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
+#docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
 #docker start $DOCKER_ID_DB
 #docker attach $DOCKER_ID_DB &> $DOCKERFOLDER/host_db.log &
 # docker start $DOCKER_ID_SOLANA
@@ -96,12 +96,13 @@ docker attach $DOCKER_ID_TCP &> $DOCKERFOLDER/host_tcp.log &
 
 # sleep 10
 
-# docker start $DOCKER_ID_ETH_RPC
-# docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
+#docker start $DOCKER_ID_ETH_RPC
+#docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
 
 export NEON_EVM_COMMIT="v0.8.1"
 export REVISION="v0.8.1"
 export FAUCET_COMMIT=19a661e04545f3a880efc04f9b7924ba7c0d92cb
+docker-compose -f docker-compose-neon.yml build
 # set so Ctrl-C force kills containers but not the whole script
 set +e
 docker-compose -f docker-compose-neon.yml up --force-recreate
@@ -115,9 +116,9 @@ docker-compose -f docker-compose-neon.yml down
 #curl --header "Content-Type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}' http://localhost:9090/solana
 #curl --header "Content-Type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":93,"jsonrpc":"2.0"}' http://solana:8899/solana
 
-docker rm -f $DOCKER_ID_TCP
+#docker rm -f $DOCKER_ID_TCP
 #docker rm -f $DOCKER_ID_DB
 # docker rm -f $DOCKER_ID_SOLANA
 #docker rm -f $DOCKER_ID_FAUCET
 #docker rm -f $DOCKER_ID_PROXY
-# docker rm -f $DOCKER_ID_ETH_RPC
+#docker rm -f $DOCKER_ID_ETH_RPC

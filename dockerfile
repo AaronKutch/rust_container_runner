@@ -13,3 +13,6 @@ RUN dnf install -y git make gcc gcc-c++ which iproute iputils procps-ng vim-mini
 
 #ADD https://github.com/AaronKutch/go-opera/releases/download/onomy_release_94738741/opera.tar.gz /opera/
 #RUN cd /opera && tar -xvf * && mv /opera/opera /usr/bin/opera
+
+COPY ./docker_assets/run_eth_rpc.sh /run_eth_rpc.sh
+COPY ./docker_assets/eth_rpc /eth_rpc
