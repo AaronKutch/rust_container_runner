@@ -94,7 +94,8 @@ pushd /
 
 # neon
 sleep 2
-curl -i -X POST -d '{"wallet": "0xBf660843528035a5A4921534E156a27e64B231fE", "amount": 900000000}' 'http://faucet:3333/request_neon'
+curl -i -X POST -d '{"wallet": "0xBf660843528035a5A4921534E156a27e64B231fE", "amount": 100000000}' 'http://faucet:3333/request_neon'
+curl -i -X POST -d '{"wallet": "0xb3d82b1367d362de99ab59a658165aff520cbd4d", "amount": 100000000}' 'http://faucet:3333/request_neon'
 sleep 2
 
 RUST_LOG="TRACE" RUST_BACKTRACE=full /eth_rpc

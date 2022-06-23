@@ -1,5 +1,5 @@
 #![allow(unused_must_use)]
-use std::{env, str::FromStr, time::Duration};
+use std::{env, iter, str::FromStr, time::Duration};
 
 use clarity::{
     address::Address as EthAddress, u256, PrivateKey as EthPrivateKey, Transaction, Uint256,
@@ -41,7 +41,7 @@ pub async fn main() {
     let rpc_host = "http://proxy:9090";
 
     // wait for the server to be ready
-    for _ in 0..40 {
+    /*for _ in 0..40 {
         if TcpStream::connect(rpc_host).await.is_ok() {
             break
         }
@@ -86,7 +86,7 @@ pub async fn main() {
     let res: Result<SyncingStatus, Web3Error> = rpc
         .request_method("eth_syncing", Vec::<String>::new(), Duration::from_secs(10))
         .await;
-    dbg!(res);
+    dbg!(res);*/
 
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
@@ -96,48 +96,15 @@ pub async fn main() {
     dbg!(web3.eth_synced_block_number().await);
     dbg!();
 
-    //sleep(Duration::from_secs(5)).await;
-    web3.wait_for_next_block(Duration::from_secs(20))
-        .await
-        .unwrap();
-    dbg!();
-
-    dbg!(
-        web3.eth_get_balance(
-            EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
-        )
-        .await
-    );
-    dbg!(
-        web3.eth_get_balance(
-            EthAddress::from_str("0xb3d82b1367d362de99ab59a658165aff520cbd4d").unwrap()
-        )
-        .await
-    );
-    dbg!("sending to eth");
-    send_eth_bulk(
-        u256!(10000000000000000000000000),
-        &[EthAddress::from_str("0xb3d82b1367d362de99ab59a658165aff520cbd4d").unwrap()],
-        &web3,
-    )
-    .await;
-    dbg!("done sending to eth");
-    web3.wait_for_next_block(Duration::from_secs(120))
-        .await
-        .unwrap();
-    dbg!("done waiting for next block");
-    dbg!(
-        web3.eth_get_balance(
-            EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
-        )
-        .await
-    );
-    dbg!(
-        web3.eth_get_balance(
-            EthAddress::from_str("0xb3d82b1367d362de99ab59a658165aff520cbd4d").unwrap()
-        )
-        .await
-    );
+    // just the same address twice for simplicity
+    let addresses: Vec<_> =
+        iter::repeat(EthAddress::from_str("0xb3d82b1367d362de99ab59a658165aff520cbd4d").unwrap())
+            .take(2)
+            .collect();
+    dbg!("sending serially");
+    send_eth_bulk_serially(u256!(1), &addresses, &web3).await;
+    dbg!("sending in parallel");
+    send_eth_bulk_parallel(u256!(1), &addresses, &web3).await;
 }
 
 async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {
@@ -151,7 +118,7 @@ async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {
     dbg!("done waiting for txn");
 }
 
-pub async fn send_eth_bulk(amount: Uint256, destinations: &[EthAddress], web3: &Web3) {
+pub async fn send_eth_bulk_parallel(amount: Uint256, destinations: &[EthAddress], web3: &Web3) {
     let net_version = web3.net_version().await.unwrap();
     let mut nonce = web3
         .eth_get_transaction_count(*MINER_ADDRESS)
@@ -159,11 +126,12 @@ pub async fn send_eth_bulk(amount: Uint256, destinations: &[EthAddress], web3: &
         .unwrap();
     let mut transactions = Vec::new();
     for address in destinations {
+        dbg!(nonce);
         let t = Transaction {
             to: *address,
             nonce,
             gas_price: HIGH_GAS_PRICE,
-            gas_limit: u256!(15790400),
+            gas_limit: u256!(2000000),
             value: amount,
             data: Vec::new(),
             signature: None,
@@ -178,4 +146,35 @@ pub async fn send_eth_bulk(amount: Uint256, destinations: &[EthAddress], web3: &
     }
     let txids = join_all(sends).await;
     wait_for_txids(txids, web3).await;
+}
+
+pub async fn send_eth_bulk_serially(amount: Uint256, destinations: &[EthAddress], web3: &Web3) {
+    let net_version = web3.net_version().await.unwrap();
+    let gas_price: Uint256 = web3.eth_gas_price().await.unwrap();
+    for address in destinations {
+        let mut transactions = Vec::new();
+        let nonce = web3
+            .eth_get_transaction_count(*MINER_ADDRESS)
+            .await
+            .unwrap();
+        dbg!(nonce);
+        let t = Transaction {
+            to: *address,
+            nonce,
+            gas_price: gas_price.checked_mul(u256!(2)).unwrap(),
+            gas_limit: u256!(2000000),
+            value: amount,
+            data: Vec::new(),
+            signature: None,
+        };
+        let t = t.sign(&*MINER_PRIVATE_KEY, Some(net_version));
+        transactions.push(t);
+        //nonce = nonce.checked_add(u256!(1)).unwrap();
+        let mut sends = Vec::new();
+        for tx in transactions {
+            sends.push(web3.eth_send_raw_transaction(tx.to_bytes().unwrap()));
+        }
+        let txids = join_all(sends).await;
+        wait_for_txids(txids, web3).await;
+    }
 }
