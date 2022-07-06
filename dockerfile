@@ -4,7 +4,7 @@ RUN dnf install -y git make gcc gcc-c++ which iproute iputils procps-ng vim-mini
 #ADD https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.10-bb74230f.tar.gz /geth/
 #RUN cd /geth && tar -xvf * && mv /geth/**/geth /usr/bin/geth
 
-COPY --from=avaplatform/avalanchego:v1.7.11-rc.4 /avalanchego/ /avalanchego/
+COPY --from=avaplatform/avalanchego:v1.7.14-rc.0 /avalanchego/ /avalanchego/
 RUN mv /avalanchego/build/avalanchego /usr/bin/avalanchego
 
 #ADD https://github.com/AaronKutch/go-opera/releases/download/onomy_release_94738741/opera.tar.gz /opera/

@@ -7,11 +7,7 @@ use clarity::{
 use futures::future::join_all;
 use lazy_static::lazy_static;
 use tokio::{net::TcpStream, time::sleep};
-use web30::{
-    client::Web3,
-    jsonrpc::{client::HttpClient, error::Web3Error},
-    types::SyncingStatus,
-};
+use web30::{client::Web3, jsonrpc::error::Web3Error};
 
 lazy_static! {
     // this key is the private key for the public key defined in tests/assets/ETHGenesis.json
@@ -23,7 +19,7 @@ lazy_static! {
             .unwrap();
     static ref MINER_ADDRESS: EthAddress = MINER_PRIVATE_KEY.to_address();
 }
-pub const HIGH_GAS_PRICE: Uint256 = u256!(30000000000);
+pub const HIGH_GAS_PRICE: Uint256 = u256!(300000000000);
 
 #[tokio::main]
 pub async fn main() {
@@ -45,9 +41,9 @@ pub async fn main() {
         }
         sleep(Duration::from_millis(500)).await
     }
-    let rpc = HttpClient::new(rpc_url);
+    //let rpc = HttpClient::new(rpc_url);
 
-    let methods = [
+    /*let methods = [
         // commented out are mentioned in `Web30` but are not used in the bridge
         //"accounts",
         //"chainId",
@@ -73,7 +69,57 @@ pub async fn main() {
     let res: Result<SyncingStatus, Web3Error> = rpc
         .request_method("eth_syncing", Vec::<String>::new(), Duration::from_secs(10))
         .await;
-    dbg!(res);
+    dbg!(res);*/
+
+    tokio::spawn(async move {
+        use std::str::FromStr;
+        // we need a duplicate `send_eth_bulk` that uses a different
+        // private key and does not wait on transactions, otherwise we
+        // conflict with the main runner's nonces and calculations
+
+        async fn send_eth_bulk2(amount: Uint256, destinations: &[EthAddress], web3: &Web3) {
+            let private_key: EthPrivateKey =
+                "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b"
+                    .to_owned()
+                    .parse()
+                    .unwrap();
+            let pub_key: EthAddress = private_key.to_address();
+            let net_version = web3.net_version().await.unwrap();
+            let mut nonce = web3.eth_get_transaction_count(pub_key).await.unwrap();
+            let mut transactions = Vec::new();
+            let gas_price: Uint256 = web3.eth_gas_price().await.unwrap();
+            dbg!(&gas_price);
+            for address in destinations {
+                let t = Transaction {
+                    to: *address,
+                    nonce,
+                    gas_price: HIGH_GAS_PRICE,//gas_price.checked_mul(u256!(2)).unwrap(),
+                    gas_limit: u256!(24000),
+                    value: amount,
+                    data: Vec::new(),
+                    signature: None,
+                };
+                let t = t.sign(&private_key, Some(net_version));
+                transactions.push(t);
+                nonce = nonce.checked_add(u256!(1)).unwrap();
+            }
+            for tx in transactions {
+                let _ = web3.eth_send_raw_transaction(tx.to_bytes().unwrap()).await;
+            }
+        }
+
+        // repeatedly send single atoms to unrelated address
+        let web3 = Web3::new(rpc_url, Duration::from_secs(60));
+        loop {
+            send_eth_bulk2(
+                u256!(1),
+                &[EthAddress::from_str("0x798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap()],
+                &web3,
+            )
+            .await;
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+    });
 
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
@@ -138,6 +184,8 @@ pub async fn send_eth_bulk(amount: Uint256, destinations: &[EthAddress], web3: &
         .await
         .unwrap();
     let mut transactions = Vec::new();
+    let gas_price: Uint256 = web3.eth_gas_price().await.unwrap();
+    dbg!(&gas_price);
     for address in destinations {
         let t = Transaction {
             to: *address,

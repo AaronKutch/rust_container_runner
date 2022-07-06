@@ -18,8 +18,8 @@ pushd /
 # the setup for local testing
 avalanchego \
     --genesis="/rust_container_runner/docker_assets/ETHGenesis.json" \
-    --build-dir="/avalanchego/build/" \
     --network-id=15 \
+    --build-dir="/avalanchego/build/" \
     --public-ip=127.0.0.1 \
     --http-port=8545 \
     --db-type=memdb \
