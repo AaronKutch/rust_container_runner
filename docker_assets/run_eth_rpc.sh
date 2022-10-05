@@ -3,17 +3,22 @@
 # so that database related folders are not spawning in the scripts folder
 pushd /
 
-#geth --identity "GravityTestnet" --nodiscover \
-#    --networkid 15 \
-#    --mine \
-#    --http \
-#    --http.addr="0.0.0.0" \
-#    --http.vhosts="*" \
-#    --http.corsdomain="*" \
-#    --miner.threads=1 \
-#    --nousb \
-#    --verbosity=5 \
-#    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE &> /rust_container_runner/docker_assets/geth.log &
+geth --identity "GravityTestnet" \
+    --nodiscover \
+    --networkid 15 \
+    init /rust_container_runner/docker_assets/ETHGenesis.json \
+    &> /rust_container_runner/docker_assets/geth_init.log
+
+geth --identity "GravityTestnet" \
+    --nodiscover \
+    --networkid 15 \
+    --fakepow \
+    --http \
+    --http.addr="0.0.0.0" \
+    --http.vhosts="*" \
+    --http.corsdomain="*" \
+    --verbosity=5 \
+    &> /rust_container_runner/docker_assets/geth.log &
 
 # Init the genesis block. The genesis block was made by copying `tests/bor/testdata/genesis.json`
 # from the `bor` repo, editing "chainId" to 15, editing "londonBlock" and "jaipurBlock" to 0,
@@ -95,7 +100,7 @@ pushd /
 # give time for bash redirection
 sleep 1
 # neon
-curl -i -X POST -d '{"wallet": "0xBf660843528035a5A4921534E156a27e64B231fE", "amount": 900000000}' 'http://host_faucet:3333/request_neon'
-sleep 1
+#curl -i -X POST -d '{"wallet": "0xBf660843528035a5A4921534E156a27e64B231fE", "amount": 900000000}' 'http://host_faucet:3333/request_neon'
+#sleep 1
 
 RUST_LOG="TRACE" RUST_BACKTRACE=full /rust_container_runner/docker_assets/eth_rpc
