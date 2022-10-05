@@ -3,7 +3,7 @@ RUN dnf install -y git make gcc gcc-c++ which iproute iputils procps-ng vim-mini
 # needed for `bor`
 #RUN dnf install -y musl-devel
 
-#ADD https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.10-bb74230f.tar.gz /geth/
+#ADD https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.25-69568c55.tar.gz /geth/
 #RUN cd /geth && tar -xvf * && mv /geth/**/geth /usr/bin/geth
 
 #COPY --from=maticnetwork/bor:v0.2.16 /usr/local/bin/bor /usr/bin/bor
