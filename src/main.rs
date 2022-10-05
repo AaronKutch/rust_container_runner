@@ -19,10 +19,16 @@ lazy_static! {
             .unwrap();
     static ref MINER_ADDRESS: EthAddress = MINER_PRIVATE_KEY.to_address();
 }
-pub const HIGH_GAS_PRICE: Uint256 = u256!(300000000000);
+pub const HIGH_GAS_PRICE: Uint256 = u256!(321000000000);
 
 #[tokio::main]
 pub async fn main() {
+    //dbg!(u256!(50000000000000000000000000).checked_sub(
+    //u256!(39999999993700000000000000)).unwrap());
+    //panic!();
+    //300000000000
+    //6300000000000000
+
     dbg!(*MINER_PRIVATE_KEY);
     dbg!(*MINER_ADDRESS);
     // geth
@@ -70,14 +76,13 @@ pub async fn main() {
         .request_method("eth_syncing", Vec::<String>::new(), Duration::from_secs(10))
         .await;
     dbg!(res);*/
-
     tokio::spawn(async move {
         use std::str::FromStr;
         // we need a duplicate `send_eth_bulk` that uses a different
         // private key and does not wait on transactions, otherwise we
         // conflict with the main runner's nonces and calculations
 
-        async fn send_eth_bulk2(amount: Uint256, destinations: &[EthAddress], web3: &Web3) {
+        async fn send_eth_bulk2(amount: Uint256, destinations: &[EthAddress], web3: &Web3, i: usize) {
             let private_key: EthPrivateKey =
                 "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b"
                     .to_owned()
@@ -93,7 +98,7 @@ pub async fn main() {
                 let t = Transaction {
                     to: *address,
                     nonce,
-                    gas_price: HIGH_GAS_PRICE,//gas_price.checked_mul(u256!(2)).unwrap(),
+                    gas_price: gas_price.checked_mul(u256!(2)).unwrap(),
                     gas_limit: u256!(24000),
                     value: amount,
                     data: Vec::new(),
@@ -110,20 +115,20 @@ pub async fn main() {
 
         // repeatedly send single atoms to unrelated address
         let web3 = Web3::new(rpc_url, Duration::from_secs(60));
-        loop {
+        for i in 0.. {
             send_eth_bulk2(
                 u256!(1),
                 &[EthAddress::from_str("0x798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap()],
-                &web3,
+                &web3,i
             )
             .await;
-            tokio::time::sleep(Duration::from_secs(1)).await;
+            tokio::time::sleep(Duration::from_millis(2000)).await;
         }
     });
 
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
-    //sleep(Duration::from_secs(5)).await;
+    sleep(Duration::from_secs(20)).await;
     //web3.wait_for_next_block(Duration::from_secs(120))
     //    .await
     //    .unwrap();
@@ -190,7 +195,7 @@ pub async fn send_eth_bulk(amount: Uint256, destinations: &[EthAddress], web3: &
         let t = Transaction {
             to: *address,
             nonce,
-            gas_price: HIGH_GAS_PRICE,
+            gas_price: gas_price.checked_mul(u256!(2)).unwrap(),
             gas_limit: u256!(24000),
             value: amount,
             data: Vec::new(),
