@@ -11,8 +11,8 @@ name = "eth_rpc"
 name = "tcp"
 
 [dependencies]
-web30 = { git = "https://github.com/onomyprotocol/web30.git", rev = "7f379993a3d5f331fd8e8e0a0770186f0fbc9860" }
-#web30 = { path = "../web30" }
+#web30 = { git = "https://github.com/onomyprotocol/web30.git", rev = "7f379993a3d5f331fd8e8e0a0770186f0fbc9860" }
+web30 = { path = "../web30" }
 tokio = { version = "1.17", features = ["macros", "rt-multi-thread"] }
 clarity = { git = "https://github.com/onomyprotocol/clarity.git", rev = "4c866defe098304cdb418d907ba407f2cdbab543" }
 lazy_static = "1"

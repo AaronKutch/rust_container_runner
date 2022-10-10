@@ -1,18 +1,21 @@
 #!/bin/bash
 
+set -eux
+
 # so that database related folders are not spawning in the scripts folder
 pushd /
 
 geth --identity "GravityTestnet" \
     --nodiscover \
     --networkid 15 \
-    init /rust_container_runner/docker_assets/ETHGenesis.json \
-    &> /rust_container_runner/docker_assets/geth_init.log
+    init /rust_container_runner/docker_assets/ETHGenesis.json
 
 geth --identity "GravityTestnet" \
     --nodiscover \
     --networkid 15 \
-    --fakepow \
+    --mine \
+    --miner.threads=1 \
+    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE \
     --http \
     --http.addr="0.0.0.0" \
     --http.vhosts="*" \

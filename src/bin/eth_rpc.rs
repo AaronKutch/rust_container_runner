@@ -96,11 +96,12 @@ pub async fn main() {
     dbg!(web3.eth_synced_block_number().await);
     dbg!();
 
+    dbg!(web3.eth_get_finalized_block().await);
     //sleep(Duration::from_secs(5)).await;
     //web3.wait_for_next_block(Duration::from_secs(600))
     //    .await
     //    .unwrap();
-    dbg!();
+    //dbg!();
 
     dbg!(
         web3.eth_get_balance(
@@ -138,6 +139,12 @@ pub async fn main() {
         )
         .await
     );
+
+    for _ in 0..3600 {
+        dbg!(web3.eth_get_finalized_block().await);
+        sleep(Duration::from_secs(15)).await;
+    }
+
 }
 
 async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {
