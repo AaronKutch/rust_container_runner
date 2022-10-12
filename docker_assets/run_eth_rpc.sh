@@ -5,23 +5,110 @@ set -eux
 # so that database related folders are not spawning in the scripts folder
 pushd /
 
-geth --identity "GravityTestnet" \
-    --nodiscover \
-    --networkid 15 \
-    init /rust_container_runner/docker_assets/ETHGenesis.json
+LOG_FOLDER=/rust_container_runner/docker_assets
+source /rust_container_runner/docker_assets/lighthouse.env
+DEBUG_LEVEL=info
+ganache \
+	--defaultBalanceEther 1000000000 \
+	--gasLimit 1000000000 \
+	--accounts 10 \
+	--mnemonic "$ETH1_NETWORK_MNEMONIC" \
+	--port 8545 \
+	--blockTime $SECONDS_PER_ETH1_BLOCK \
+	--chain.chainId "$CHAIN_ID" &> $LOG_FOLDER/ganache.log &
 
-geth --identity "GravityTestnet" \
-    --nodiscover \
-    --networkid 15 \
-    --mine \
-    --miner.threads=1 \
-    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE \
-    --http \
-    --http.addr="0.0.0.0" \
-    --http.vhosts="*" \
-    --http.corsdomain="*" \
-    --verbosity=5 \
-    &> /rust_container_runner/docker_assets/geth.log &
+sleep 10
+
+lcli \
+	deploy-deposit-contract \
+	--eth1-http http://localhost:8545 \
+	--confirmations 1 \
+	--validator-count 1
+NOW=`date +%s`
+GENESIS_TIME=`expr $NOW + $GENESIS_DELAY`
+lcli \
+	new-testnet \
+	--spec $SPEC_PRESET \
+	--deposit-contract-address $DEPOSIT_CONTRACT_ADDRESS \
+	--testnet-dir $TESTNET_DIR \
+	--min-genesis-active-validator-count 1 \
+	--min-genesis-time $GENESIS_TIME \
+	--genesis-delay $GENESIS_DELAY \
+	--genesis-fork-version $GENESIS_FORK_VERSION \
+	--altair-fork-epoch $ALTAIR_FORK_EPOCH \
+	--eth1-id $CHAIN_ID \
+	--eth1-follow-distance 1 \
+	--seconds-per-slot $SECONDS_PER_SLOT \
+	--seconds-per-eth1-block $SECONDS_PER_ETH1_BLOCK \
+	--force
+lcli \
+	insecure-validators \
+	--count 1 \
+	--base-dir $DATADIR \
+	--node-count 1
+lcli \
+	interop-genesis \
+	--spec $SPEC_PRESET \
+	--genesis-time $GENESIS_TIME \
+	--testnet-dir $TESTNET_DIR \
+	1
+lcli \
+	generate-bootnode-enr \
+	--ip 127.0.0.1 \
+	--udp-port $BOOTNODE_PORT \
+	--tcp-port $BOOTNODE_PORT \
+	--genesis-fork-version $GENESIS_FORK_VERSION \
+	--output-dir $DATADIR/bootnode
+bootnode_enr=`cat $DATADIR/bootnode/enr.dat`
+echo "- $bootnode_enr" > $TESTNET_DIR/boot_enr.yaml
+# boot node
+lighthouse boot_node \
+    --testnet-dir $TESTNET_DIR \
+    --port $BOOTNODE_PORT \
+    --listen-address 127.0.0.1 \
+	--disable-packet-filter \
+    --network-dir $DATADIR/bootnode &> $LOG_FOLDER/boot_node.log &
+# beacon node
+lighthouse \
+	--debug-level $DEBUG_LEVEL \
+	bn \
+	--datadir $DATADIR/node_1 \
+	--testnet-dir $TESTNET_DIR \
+	--enable-private-discovery \
+	--staking \
+	--enr-address 127.0.0.1 \
+	--enr-udp-port $LIGHTHOUSE_TCP_PORT \
+	--enr-tcp-port $LIGHTHOUSE_TCP_PORT \
+	--port $LIGHTHOUSE_TCP_PORT \
+	--http-port $LIGHTHOUSE_HTTP_PORT \
+	--disable-packet-filter \
+	--target-peers 0 &> $LOG_FOLDER/beacon_node.log &
+# validator
+lighthouse \
+	--debug-level $DEBUG_LEVEL \
+	vc \
+	--datadir $DATADIR/node_1 \
+	--testnet-dir $TESTNET_DIR \
+	--init-slashing-protection \
+	--beacon-nodes http://localhost:$LIGHTHOUSE_HTTP_PORT &> $LOG_FOLDER/validator_node.log &
+
+#geth --identity "GravityTestnet" \
+#    --nodiscover \
+#    --networkid 15 \
+#    init /rust_container_runner/docker_assets/ETHGenesis.json
+#
+#geth --identity "GravityTestnet" \
+#    --nodiscover \
+#    --networkid 15 \
+#    --mine \
+#    --miner.threads=1 \
+#    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE \
+#    --http \
+#    --http.addr="0.0.0.0" \
+#    --http.vhosts="*" \
+#    --http.corsdomain="*" \
+#    --verbosity=5 \
+#    &> /rust_container_runner/docker_assets/geth.log &
 
 # Init the genesis block. The genesis block was made by copying `tests/bor/testdata/genesis.json`
 # from the `bor` repo, editing "chainId" to 15, editing "londonBlock" and "jaipurBlock" to 0,

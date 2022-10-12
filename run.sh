@@ -33,6 +33,7 @@ RUN_ARGS_ETH_RPC=""
 RUN_ARGS_TCP=""
 if [[ "${TEST_TYPE:-}" == "NO_SCRIPTS" ]]; then
    echo "Running container instance without starting scripts"
+   RUN_ARGS_ETH_RPC="sleep infinity"
 else
    RUN_ARGS_ETH_RPC="/bin/bash /rust_container_runner/docker_assets/run_eth_rpc.sh"
    RUN_ARGS_TCP="/bin/bash /rust_container_runner/docker_assets/run_tcp.sh"

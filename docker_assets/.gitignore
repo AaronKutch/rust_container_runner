@@ -9,3 +9,4 @@
 !solana-run-neon.sh
 !neon_proxy.sh
 !sheme.sql
+!lighthouse.env
