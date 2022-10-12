@@ -75,6 +75,8 @@ lighthouse \
 	--datadir $DATADIR/node_1 \
 	--testnet-dir $TESTNET_DIR \
 	--enable-private-discovery \
+    --http-allow-sync-stalled \
+    --subscribe-all-subnets \
 	--staking \
 	--enr-address 127.0.0.1 \
 	--enr-udp-port $LIGHTHOUSE_TCP_PORT \
@@ -82,7 +84,24 @@ lighthouse \
 	--port $LIGHTHOUSE_TCP_PORT \
 	--http-port $LIGHTHOUSE_HTTP_PORT \
 	--disable-packet-filter \
-	--target-peers 0 &> $LOG_FOLDER/beacon_node.log &
+	--target-peers 1 &> $LOG_FOLDER/beacon_node.log &
+# may need second beacon node for peering
+#lighthouse \
+#	--debug-level $DEBUG_LEVEL \
+#	bn \
+#	--datadir $DATADIR/node_2 \
+#	--testnet-dir $TESTNET_DIR \
+#	--enable-private-discovery \
+#   --http-allow-sync-stalled \
+#   --subscribe-all-subnets \
+#	--staking \
+#	--enr-address 127.0.0.1 \
+#	--enr-udp-port $LIGHTHOUSE_TCP_PORT2 \
+#	--enr-tcp-port $LIGHTHOUSE_TCP_PORT2 \
+#	--port $LIGHTHOUSE_TCP_PORT2 \
+#	--http-port $LIGHTHOUSE_HTTP_PORT2 \
+#	--disable-packet-filter \
+#	--target-peers 1 &> $LOG_FOLDER/beacon_node2.log &
 # validator
 lighthouse \
 	--debug-level $DEBUG_LEVEL \
