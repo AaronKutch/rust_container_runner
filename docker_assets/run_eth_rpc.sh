@@ -8,22 +8,51 @@ pushd /
 LOG_FOLDER=/rust_container_runner/docker_assets
 source /rust_container_runner/docker_assets/lighthouse.env
 DEBUG_LEVEL=info
-ganache \
-	--defaultBalanceEther 1000000000 \
-	--gasLimit 1000000000 \
-	--accounts 10 \
-	--mnemonic "$ETH1_NETWORK_MNEMONIC" \
-	--port 8545 \
-	--blockTime $SECONDS_PER_ETH1_BLOCK \
-	--chain.chainId "$CHAIN_ID" &> $LOG_FOLDER/ganache.log &
 
+# only for NO_SCRIPTS rerunning
+DATADIR=~/.lighthouse/local-testnet
+rm -rf $DATADIR
+
+# `jwtsecret` was generated with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+
+# `dev_keystore/dev_key.json` and `dev_password.txt` is also used
+
+geth --identity "GravityTestnet" \
+    --nodiscover \
+    --networkid 15 \
+    init $LOG_FOLDER/ETHGenesis.json
+geth \
+	--nodiscover \
+	--allow-insecure-unlock \
+	--unlock 0xBf660843528035a5A4921534E156a27e64B231fE \
+	--keystore $LOG_FOLDER/dev_keystore \
+	--password $LOG_FOLDER/dev_password.txt \
+	--authrpc.addr localhost \
+	--authrpc.port 8551 \
+	--authrpc.vhosts localhost \
+	--authrpc.jwtsecret $LOG_FOLDER/jwtsecret \
+    --http \
+    --http.addr="0.0.0.0" \
+    --http.vhosts="*" \
+    --http.corsdomain="*" \
+    --verbosity=4 \
+	&> $LOG_FOLDER/geth.log &
+
+#ganache \
+#	--defaultBalanceEther 1000000000 \
+#	--gasLimit 1000000000 \
+#	--accounts 10 \
+#	--mnemonic "$ETH1_NETWORK_MNEMONIC" \
+#	--port 8544 \
+#	--blockTime $SECONDS_PER_ETH1_BLOCK \
+#	--chain.chainId "$CHAIN_ID" \
+#	&> $LOG_FOLDER/ganache.log &
 sleep 10
-
-lcli \
-	deploy-deposit-contract \
-	--eth1-http http://localhost:8545 \
-	--confirmations 1 \
-	--validator-count 1
+#lcli \
+#	deploy-deposit-contract \
+#	--eth1-http http://localhost:8545 \
+#	--confirmations 1 \
+#	--validator-count 1
 NOW=`date +%s`
 GENESIS_TIME=`expr $NOW + $GENESIS_DELAY`
 lcli \
@@ -36,6 +65,7 @@ lcli \
 	--genesis-delay $GENESIS_DELAY \
 	--genesis-fork-version $GENESIS_FORK_VERSION \
 	--altair-fork-epoch $ALTAIR_FORK_EPOCH \
+    --merge-fork-epoch 0 \
 	--eth1-id $CHAIN_ID \
 	--eth1-follow-distance 1 \
 	--seconds-per-slot $SECONDS_PER_SLOT \
@@ -59,15 +89,18 @@ lcli \
 	--tcp-port $BOOTNODE_PORT \
 	--genesis-fork-version $GENESIS_FORK_VERSION \
 	--output-dir $DATADIR/bootnode
+
 bootnode_enr=`cat $DATADIR/bootnode/enr.dat`
 echo "- $bootnode_enr" > $TESTNET_DIR/boot_enr.yaml
+
 # boot node
 lighthouse boot_node \
     --testnet-dir $TESTNET_DIR \
     --port $BOOTNODE_PORT \
     --listen-address 127.0.0.1 \
 	--disable-packet-filter \
-    --network-dir $DATADIR/bootnode &> $LOG_FOLDER/boot_node.log &
+    --network-dir $DATADIR/bootnode \
+	&> $LOG_FOLDER/boot_node.log &
 # beacon node
 lighthouse \
 	--debug-level $DEBUG_LEVEL \
@@ -76,6 +109,10 @@ lighthouse \
 	--testnet-dir $TESTNET_DIR \
 	--enable-private-discovery \
     --http-allow-sync-stalled \
+    --execution-endpoint http://localhost:8551 \
+	--execution-jwt $LOG_FOLDER/jwtsecret \
+	--terminal-block-hash-epoch-override 0 \
+	--terminal-block-hash-override 0 \
     --subscribe-all-subnets \
 	--staking \
 	--enr-address 127.0.0.1 \
@@ -84,32 +121,42 @@ lighthouse \
 	--port $LIGHTHOUSE_TCP_PORT \
 	--http-port $LIGHTHOUSE_HTTP_PORT \
 	--disable-packet-filter \
-	--target-peers 1 &> $LOG_FOLDER/beacon_node.log &
+	--target-peers 1 \
+	&> $LOG_FOLDER/beacon_node.log &
 # may need second beacon node for peering
-#lighthouse \
-#	--debug-level $DEBUG_LEVEL \
-#	bn \
-#	--datadir $DATADIR/node_2 \
-#	--testnet-dir $TESTNET_DIR \
-#	--enable-private-discovery \
-#   --http-allow-sync-stalled \
-#   --subscribe-all-subnets \
-#	--staking \
-#	--enr-address 127.0.0.1 \
-#	--enr-udp-port $LIGHTHOUSE_TCP_PORT2 \
-#	--enr-tcp-port $LIGHTHOUSE_TCP_PORT2 \
-#	--port $LIGHTHOUSE_TCP_PORT2 \
-#	--http-port $LIGHTHOUSE_HTTP_PORT2 \
-#	--disable-packet-filter \
-#	--target-peers 1 &> $LOG_FOLDER/beacon_node2.log &
+lighthouse \
+	--debug-level $DEBUG_LEVEL \
+	bn \
+	--datadir $DATADIR/node_2 \
+	--testnet-dir $TESTNET_DIR \
+	--enable-private-discovery \
+    --http-allow-sync-stalled \
+    --execution-endpoint http://localhost:8551 \
+	--execution-jwt $LOG_FOLDER/jwtsecret \
+	--terminal-block-hash-epoch-override 0 \
+	--terminal-block-hash-override 0 \
+    --subscribe-all-subnets \
+	--staking \
+	--enr-address 127.0.0.1 \
+	--enr-udp-port $LIGHTHOUSE_TCP_PORT2 \
+	--enr-tcp-port $LIGHTHOUSE_TCP_PORT2 \
+	--port $LIGHTHOUSE_TCP_PORT2 \
+	--http-port $LIGHTHOUSE_HTTP_PORT2 \
+	--disable-packet-filter \
+	--target-peers 1 \
+	&> $LOG_FOLDER/beacon_node.log &
 # validator
 lighthouse \
 	--debug-level $DEBUG_LEVEL \
 	vc \
 	--datadir $DATADIR/node_1 \
 	--testnet-dir $TESTNET_DIR \
+	--terminal-block-hash-epoch-override 0 \
+	--terminal-block-hash-override 0 \
 	--init-slashing-protection \
-	--beacon-nodes http://localhost:$LIGHTHOUSE_HTTP_PORT &> $LOG_FOLDER/validator_node.log &
+	--beacon-nodes http://localhost:$LIGHTHOUSE_HTTP_PORT \
+	&> $LOG_FOLDER/validator_node.log &
+
 
 #geth --identity "GravityTestnet" \
 #    --nodiscover \

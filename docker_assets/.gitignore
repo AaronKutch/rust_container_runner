@@ -10,3 +10,5 @@
 !neon_proxy.sh
 !sheme.sql
 !lighthouse.env
+!ETHGenesis.json
+!jwtsecret

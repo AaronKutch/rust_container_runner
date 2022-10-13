@@ -68,6 +68,8 @@ read -p "Press Return to Close..."
 #curl -s --header "Content-Type: application/json" --data '{"method":"eth_syncing","params":[],"id":93,"jsonrpc":"2.0"}' http://host_proxy:8545/solana
 
 #curl -s --header "Content-Type: application/json" --data '{"method":"eth_getBlockByNumber","params":["finalized",false],"id":99,"jsonrpc":"2.0"}' http://localhost:8545
+#curl -s --header "Content-Type: application/json" --data '{"method":"eth_getBlockByNumber","params":["latest",false],"id":99,"jsonrpc":"2.0"}' http://localhost:8545
+
 
 #docker rm -f $DOCKER_ID_TCP
 docker rm -f $DOCKER_ID_ETH_RPC

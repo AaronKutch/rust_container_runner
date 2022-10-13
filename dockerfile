@@ -3,13 +3,12 @@ RUN dnf install -y git make cmake gcc gcc-c++ which iproute iputils procps-ng vi
 # needed for `bor`
 #RUN dnf install -y musl-devel
 
-#ADD https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.25-69568c55.tar.gz /geth/
-#RUN cd /geth && tar -xvf * && mv /geth/**/geth /usr/bin/geth
-
 RUN npm install ganache --global
 COPY --from=sigp/lighthouse:v3.1.2 /usr/local/bin/lighthouse /usr/bin/lighthouse
 COPY --from=sigp/lcli:v3.1.2 /usr/local/bin/lcli /usr/bin/lcli
 #RUN git clone https://github.com/sigp/lighthouse.git
+ADD https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.25-69568c55.tar.gz /geth/
+RUN cd /geth && tar -xvf * && mv /geth/**/geth /usr/bin/geth
 
 #COPY --from=maticnetwork/bor:v0.2.16 /usr/local/bin/bor /usr/bin/bor
 
