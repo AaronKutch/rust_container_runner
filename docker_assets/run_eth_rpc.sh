@@ -157,6 +157,8 @@ lighthouse \
 	--beacon-nodes http://localhost:$LIGHTHOUSE_HTTP_PORT \
 	&> $LOG_FOLDER/validator_node.log &
 
+# TODO https://github.com/sigp/lighthouse/pull/3364
+
 
 #geth --identity "GravityTestnet" \
 #    --nodiscover \
