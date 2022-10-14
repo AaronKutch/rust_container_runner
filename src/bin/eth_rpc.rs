@@ -19,6 +19,7 @@ lazy_static! {
     // to have a lot of ETH to pay for things like contract deployments
     static ref MINER_PRIVATE_KEY: EthPrivateKey = env::var("MINER_PRIVATE_KEY").unwrap_or_else(|_|
         "0xb1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7".to_owned()
+        //"0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133".to_owned()
             ).parse()
             .unwrap();
     static ref MINER_ADDRESS: EthAddress = MINER_PRIVATE_KEY.to_address();
@@ -105,6 +106,8 @@ pub async fn main() {
     dbg!(web3.eth_syncing().await);
     dbg!(web3.eth_synced_block_number().await);
 
+    dbg!(web3.eth_get_finalized_block().await);
+
     //sleep(Duration::from_secs(5)).await;
     //web3.wait_for_next_block(Duration::from_secs(120))
     //    .await
@@ -120,12 +123,6 @@ pub async fn main() {
         nonce: None,
     }).await.unwrap());
 
-    send_eth_bulk(
-        u256!(1),
-        &[EthAddress::from_str("0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap()],
-        &web3,
-    ).await;
-
     dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap()
@@ -140,6 +137,7 @@ pub async fn main() {
     );
     dbg!("sending to eth");
     send_eth_bulk(
+        //u256!(1000000000000000000000),
         u256!(1337),
         &[EthAddress::from_str("0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap()],
         &web3,

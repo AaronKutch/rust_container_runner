@@ -101,6 +101,10 @@ rams":[],"id":93,"jsonrpc":"2.0"}' http://localhost:8545); do
     sleep 1
 done
 
+curl -s --header "content-type: application/json" --data '{"id":14,"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf870808506fc23ac00825dc094bf660843528035a5a4921534e156a27e64b231fe8ad3c21bcecceda100000080820a25a0828252174fcb379be0317d4448bf0ca5296873422a9d19bf1418cc36c447c955a0127c426b2e1e5be9f30f37b2d04ebf7ed75686d43253d25deb90f0445deb2745"]}' http://localhost:8545
+
+# {"id":14,"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf870808506fc23ac00825dc094bf660843528035a5a4921534e156a27e64b231fe8ad3c21bcecceda100000080820a25a0828252174fcb379be0317d4448bf0ca5296873422a9d19bf1418cc36c447c955a0127c426b2e1e5be9f30f37b2d04ebf7ed75686d43253d25deb90f0445deb2745"]}
+
 #curl -s --header "content-type: application/json" --data "{\"id\":10,\"jsonrpc\":\"2.0\",\"method\":\"eth_chainId\",\"params\":[]}" http://localhost:8545
 
 # transfer funds from Alith account to account used by bridge
