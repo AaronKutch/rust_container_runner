@@ -14,4 +14,5 @@ RUN dnf install -y git make cmake gcc gcc-c++ which iproute iputils procps-ng vi
 #ADD https://github.com/AaronKutch/go-opera/releases/download/onomy_release_94738741/opera.tar.gz /opera/
 #RUN cd /opera && tar -xvf * && mv /opera/opera /usr/bin/opera
 
-COPY --from=purestake/moonbeam:sha-27df52c9 /moonbeam/moonbeam /usr/bin/moonbeam
+ADD https://github.com/AaronKutch/go-opera/releases/download/onomy_release_8530dc13/opera /usr/bin/opera
+RUN chmod u+x /usr/bin/opera

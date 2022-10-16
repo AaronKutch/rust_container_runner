@@ -63,45 +63,60 @@ pushd /
 #    --staking-enabled=false &> /rust_container_runner/docker_assets/avalanchego.log &
 
 # To make a custom genesis file for `go-opera`, comment out the normal `opera`
-# command below and change `MINER_PRIVATE_KEY`
+# command below and edit `test_runner/src/main.rs` by changing `MINER_PRIVATE_KEY`
 # to use 0x163F5F0F9A621D72FEDD85FFCA3D08D131AB4E812181E0D30FFD1C885D20AAC7
 # and uncommenting the special `send_eth_bulk` that sends tokens to the address we
 # want to use. Uncomment the other `opera` command below which will use Fantom's
-# default genesis. Then, run `bash run.sh NO_SCRIPTS`
+# default genesis. Then, run `USE_LOCAL_ARTIFACTS=1 bash tests/all-up-test.sh NO_SCRIPTS`
 # and get a command prompt to the running container. In the container run
-# `bash /rust_container_runner/docker_assets/run_internal.sh` and wait for it to finish
+# `bash /gravity/tests/container-scripts/all-up-test-internal.sh 4` and wait for the panic
+# "sent eth to default address" (or for some reason the test runner can hang, look at
+# `opera.log` to see if the transaction has happened and then kill the test runner).
 # Then in the container `pkill opera` and run
-# `opera --datadir /opera_datadir/ export genesis /rust_container_runner/docker_assets/test_genesis.g --export.evm.mode=ext-mpt`
+# `opera --datadir /opera_datadir/ export genesis /gravity/tests/assets/test_genesis.g --export.evm.mode=ext-mpt`
 # which will convert the state of the testchain up to that point into a new genesis that we
 # use for normal runs. Commit the `test_genesis.g` and undo the other changes.
-#opera --fakenet 1/1 \
+opera --fakenet 1/1 \
+    --nodiscover \
+    --http \
+    --http.addr="localhost" \
+    --http.port="8545" \
+    --http.api="eth,debug,net,admin,web3,personal,txpool,ftm,dag" \
+    --verbosity 5 \
+    --datadir="/opera_datadir" &> /rust_container_runner/docker_assets/opera.log &
+
+# The fakenet chain id is 4003, which is different from the production id of 250
+#opera --genesis="/gravity/tests/assets/test_genesis.g" \
+#    --genesis.allowExperimental=true \
 #    --nodiscover \
 #    --http \
 #    --http.addr="localhost" \
 #    --http.port="8545" \
 #    --http.api="eth,debug,net,admin,web3,personal,txpool,ftm,dag" \
-#    --datadir="/opera_datadir" &> /rust_container_runner/docker_assets/opera.log &
+#    --datadir="/opera_datadir" &> /opera.log &
 
-#opera --fakenet 1/1 \
-#    --genesis.allowExperimental \
-#    --genesis="/rust_container_runner/docker_assets/test_genesis.g" \
-#    --nodiscover \
-#    --http \
-#    --http.addr="localhost" \
-#    --http.port="8545" \
-#    --http.api="eth,debug,net,admin,web3,personal,txpool,ftm,dag" \
-#    --datadir="/opera_datadir" &> /rust_container_runner/docker_assets/opera.log &
-
-moonbeam --dev --rpc-port 8545 &
-echo "waiting for moonbeam to come online"
-#WAIT_FOR_PORT=1 /rust_container_runner/docker_assets/eth_rpc
-until $(curl --output /dev/null --fail --silent --header "content-type: application/json" --data '{"method":"eth_blockNumber","pa
-rams":[],"id":93,"jsonrpc":"2.0"}' http://localhost:8545); do
-    printf '.'
+echo "waiting for go-opera to come online"
+until $(curl --output /dev/null --fail --silent --header "content-type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' http://localhost:8545); do
+    sleep 1
+done
+# go-opera takes a few seconds to sync
+echo "waiting for go-opera to sync"
+until [ "$(curl -s --header "content-type: application/json" --data '{"id":1,"jsonrpc":"2.0","method":"eth_syncing","params":[]}' http://localhost:8545)" == '{"jsonrpc":"2.0","id":1,"result":false}' ]; do
     sleep 1
 done
 
-curl -s --header "content-type: application/json" --data '{"id":14,"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf870808506fc23ac00825dc094bf660843528035a5a4921534e156a27e64b231fe8ad3c21bcecceda100000080820a25a0828252174fcb379be0317d4448bf0ca5296873422a9d19bf1418cc36c447c955a0127c426b2e1e5be9f30f37b2d04ebf7ed75686d43253d25deb90f0445deb2745"]}' http://localhost:8545
+# send from dev account (priv 0x163F5F0F9A621D72FEDD85FFCA3D08D131AB4E812181E0D30FFD1C885D20AAC7/pub 0x239fA7623354eC26520dE878B52f13Fe84b06971) to 0xBf660843528035a5A4921534E156a27e64B231fE
+curl -s --header "content-type: application/json" --data '{"id":12,"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf871808506fc23ac00825dc094bf660843528035a5a4921534e156a27e64b231fe8b52b7d2dcc80cd2e400000080821f6aa020bac4e3944d6b12075eee0e58ec9e40270a9a977feba34362190a825575f550a07272d97392a1a7d0bda2a0bb62da49b45275f873259a16e463603a60abf9a5cf"]}' http://localhost:8545
+
+echo "waiting for transaction to account 0xBf6608..."
+until [ "$(curl -s --header "content-type: application/json" --data '{"id":1,"jsonrpc":"2.0","method":"eth_getBalance","params":["0xBf660843528035a5A4921534E156a27e64B231fE","latest"]}' http://localhost:8545)" == '{"jsonrpc":"2.0","id":1,"result":"0x52b7d2dcc80cd2e4000000"}' ]; do
+     sleep 1
+done
+
+#curl -s --header "content-type: application/json" --data '{"id":14,"jsonrpc":"2.0","method":"eth_getTransactionCount","params":["0xf870808506fc23ac00825dc094bf660843528035a5a4921534e156a27e64b231fe8ad3c21bcecceda100000080820a25a0828252174fcb379be0317d4448bf0ca5296873422a9d19bf1418cc36c447c955a0127c426b2e1e5be9f30f37b2d04ebf7ed75686d43253d25deb90f0445deb2745"]}' http://localhost:8545
+
+
+#curl -s --header "content-type: application/json" --data '{"id":14,"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf870808506fc23ac00825dc094bf660843528035a5a4921534e156a27e64b231fe8ad3c21bcecceda100000080820a25a0828252174fcb379be0317d4448bf0ca5296873422a9d19bf1418cc36c447c955a0127c426b2e1e5be9f30f37b2d04ebf7ed75686d43253d25deb90f0445deb2745"]}' http://localhost:8545
 
 # {"id":14,"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf870808506fc23ac00825dc094bf660843528035a5a4921534e156a27e64b231fe8ad3c21bcecceda100000080820a25a0828252174fcb379be0317d4448bf0ca5296873422a9d19bf1418cc36c447c955a0127c426b2e1e5be9f30f37b2d04ebf7ed75686d43253d25deb90f0445deb2745"]}
 
@@ -116,3 +131,9 @@ curl -s --header "content-type: application/json" --data '{"id":14,"jsonrpc":"2.
 #curl -s --header "content-type: application/json" --data '{"jsonrpc":"2.0","result":{"author":"0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac","baseFeePerGas":"0x3b9aca00","difficulty":"0x0","extraData":"0x","gasLimit":"0xe4e1c0","gasUsed":"0x0","hash":"0x5d74beb91b07d959fc0173e6ccdaf0cecd71c111a8a002c33c4262f3f8dbd35d","logsBloom":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","miner":"0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac","number":"0x8","parentHash":"0xa2ce0891a1f1de59cc3923cbaa66d38f6f40ac4f2877f7a90636992c27e1db48","receiptsRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","sealFields":["0x0000000000000000000000000000000000000000000000000000000000000000","0x0000000000000000"],"sha3Uncles":"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347","size":"0x1fe","stateRoot":"0x664b7374999c57cf45e312d2248f75a49a5ce103a73c2e975c8dad3d2dcabb9d","timestamp":"0x62acf17e","totalDifficulty":"0x0","transactions":[],"transactionsRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","uncles":[]},"id":25}' http://localhost:8545
 
 RUST_LOG="TRACE" RUST_BACKTRACE=full /rust_container_runner/docker_assets/eth_rpc
+
+#sleep infinity
+
+#curl -s --header "content-type: application/json" --data '{"id":14,"jsonrpc":"2.0","method":"eth_syncing","params":[]}' http://localhost:8545
+#curl -s --header "content-type: application/json" --data '{"id":14,"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["finalized",false]}' http://localhost:8545
+

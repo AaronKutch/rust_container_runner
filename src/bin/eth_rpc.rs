@@ -18,8 +18,8 @@ lazy_static! {
     // where the full node / miner sends its rewards. Therefore it's always going
     // to have a lot of ETH to pay for things like contract deployments
     static ref MINER_PRIVATE_KEY: EthPrivateKey = env::var("MINER_PRIVATE_KEY").unwrap_or_else(|_|
+        //"0x163F5F0F9A621D72FEDD85FFCA3D08D131AB4E812181E0D30FFD1C885D20AAC7".to_owned()
         "0xb1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7".to_owned()
-        //"0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133".to_owned()
             ).parse()
             .unwrap();
     static ref MINER_ADDRESS: EthAddress = MINER_PRIVATE_KEY.to_address();
@@ -62,7 +62,7 @@ pub async fn main() {
 
     let rpc = HttpClient::new(rpc_url);
 
-    let calls = [
+    /*let calls = [
         // commented out are mentioned in `Web30` but are not used in the bridge
         //"eth_accounts",
         //"eth_chainId",
@@ -100,7 +100,7 @@ pub async fn main() {
         .request_method("eth_syncing", Vec::<String>::new(), Duration::from_secs(10))
         .await;
     dbg!(res);
-
+*/
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
     dbg!(web3.eth_syncing().await);
@@ -108,6 +108,7 @@ pub async fn main() {
 
     dbg!(web3.eth_get_finalized_block().await);
 
+    /*
     //sleep(Duration::from_secs(5)).await;
     //web3.wait_for_next_block(Duration::from_secs(120))
     //    .await
@@ -121,11 +122,11 @@ pub async fn main() {
         value: None,
         data: None,
         nonce: None,
-    }).await.unwrap());
+    }).await.unwrap());*/
 
     dbg!(
         web3.eth_get_balance(
-            EthAddress::from_str("0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap()
+            EthAddress::from_str("0x239fA7623354eC26520dE878B52f13Fe84b06971").unwrap()
         )
         .await
     );
@@ -137,9 +138,9 @@ pub async fn main() {
     );
     dbg!("sending to eth");
     send_eth_bulk(
-        //u256!(1000000000000000000000),
-        u256!(1337),
-        &[EthAddress::from_str("0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap()],
+        u256!(1000000000000000000000),
+        //u256!(100000000000000000000000000),
+        &[EthAddress::from_str("0x239fA7623354eC26520dE878B52f13Fe84b06971").unwrap()],
         &web3,
     )
     .await;
@@ -150,7 +151,7 @@ pub async fn main() {
     dbg!("done waiting for next block");
     dbg!(
         web3.eth_get_balance(
-            EthAddress::from_str("0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap()
+            EthAddress::from_str("0x239fA7623354eC26520dE878B52f13Fe84b06971").unwrap()
         )
         .await
     );

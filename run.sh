@@ -80,6 +80,8 @@ docker network create --internal testnet
 
 docker run --rm --network=testnet --hostname="host_eth_rpc" --name="host_eth_rpc" ${PLATFORM_CMD} ${VOLUME_ARGS} rust_test_runner_image ${RUN_ARGS_ETH_RPC}
 
+#curl -s --header "content-type: application/json" --data '{"method":"eth_syncing","params":[],"id":93,"jsonrpc":"2.0"}' http://localhost:8545
+
 # delayed start to wait for everything to be pulled and created
 #docker start $DOCKER_ID_TCP
 # there is unfortunately a small period of time where stdout could be lost, but there seems to be no
