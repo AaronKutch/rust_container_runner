@@ -17,6 +17,8 @@ rm -rf $DATADIR
 
 # `dev_keystore/dev_key.json` and `dev_password.txt` is also used
 
+#sleep infinity
+
 geth --identity "GravityTestnet" \
     --nodiscover \
     --networkid 15 \
@@ -38,6 +40,15 @@ geth \
     --verbosity=4 \
 	&> $LOG_FOLDER/geth.log &
 
+echo "waiting for geth to come online"
+until $(curl --output /dev/null --fail --silent --header "content-type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' http://localhost:8545); do
+	sleep 1
+done
+echo "waiting for geth to sync"
+until [ "$(curl -s --header "content-type: application/json" --data '{"id":1,"jsonrpc":"2.0","method":"eth_syncing","params":[]}' http://localhost:8545)" == '{"jsonrpc":"2.0","id":1,"result":false}' ]; do
+	sleep 1
+done
+
 #ganache \
 #	--defaultBalanceEther 1000000000 \
 #	--gasLimit 1000000000 \
@@ -47,7 +58,7 @@ geth \
 #	--blockTime $SECONDS_PER_ETH1_BLOCK \
 #	--chain.chainId "$CHAIN_ID" \
 #	&> $LOG_FOLDER/ganache.log &
-sleep 10
+
 #lcli \
 #	deploy-deposit-contract \
 #	--eth1-http http://localhost:8545 \
@@ -65,12 +76,12 @@ lcli \
 	--genesis-delay $GENESIS_DELAY \
 	--genesis-fork-version $GENESIS_FORK_VERSION \
 	--altair-fork-epoch $ALTAIR_FORK_EPOCH \
-    --merge-fork-epoch 0 \
 	--eth1-id $CHAIN_ID \
 	--eth1-follow-distance 1 \
 	--seconds-per-slot $SECONDS_PER_SLOT \
 	--seconds-per-eth1-block $SECONDS_PER_ETH1_BLOCK \
 	--force
+	#--merge-fork-epoch 0 \
 lcli \
 	insecure-validators \
 	--count 1 \
@@ -105,15 +116,10 @@ lighthouse boot_node \
 lighthouse \
 	--debug-level $DEBUG_LEVEL \
 	bn \
+    --subscribe-all-subnets \
 	--datadir $DATADIR/node_1 \
 	--testnet-dir $TESTNET_DIR \
 	--enable-private-discovery \
-    --http-allow-sync-stalled \
-    --execution-endpoint http://localhost:8551 \
-	--execution-jwt $LOG_FOLDER/jwtsecret \
-	--terminal-block-hash-epoch-override 0 \
-	--terminal-block-hash-override 0 \
-    --subscribe-all-subnets \
 	--staking \
 	--enr-address 127.0.0.1 \
 	--enr-udp-port $LIGHTHOUSE_TCP_PORT \
@@ -122,20 +128,22 @@ lighthouse \
 	--http-port $LIGHTHOUSE_HTTP_PORT \
 	--disable-packet-filter \
 	--target-peers 1 \
+    --http-allow-sync-stalled \
+    --execution-endpoint $EXECUTION_ENDPOINT \
+	--execution-jwt $LOG_FOLDER/jwtsecret \
+	--eth1 \
+	--merge \
+	--terminal-total-difficulty-override=60000000 \
+	--eth1-endpoints $ETH_ENDPOINT \
 	&> $LOG_FOLDER/beacon_node.log &
 # may need second beacon node for peering
 lighthouse \
 	--debug-level $DEBUG_LEVEL \
 	bn \
+    --subscribe-all-subnets \
 	--datadir $DATADIR/node_2 \
 	--testnet-dir $TESTNET_DIR \
 	--enable-private-discovery \
-    --http-allow-sync-stalled \
-    --execution-endpoint http://localhost:8551 \
-	--execution-jwt $LOG_FOLDER/jwtsecret \
-	--terminal-block-hash-epoch-override 0 \
-	--terminal-block-hash-override 0 \
-    --subscribe-all-subnets \
 	--staking \
 	--enr-address 127.0.0.1 \
 	--enr-udp-port $LIGHTHOUSE_TCP_PORT2 \
@@ -144,20 +152,27 @@ lighthouse \
 	--http-port $LIGHTHOUSE_HTTP_PORT2 \
 	--disable-packet-filter \
 	--target-peers 1 \
-	&> $LOG_FOLDER/beacon_node.log &
+    --http-allow-sync-stalled \
+    --execution-endpoint $EXECUTION_ENDPOINT \
+	--execution-jwt $LOG_FOLDER/jwtsecret \
+	--eth1 \
+	--merge \
+	--terminal-total-difficulty-override=60000000 \
+	--eth1-endpoints $ETH_ENDPOINT \
+	&> $LOG_FOLDER/beacon_node2.log &
 # validator
 lighthouse \
 	--debug-level $DEBUG_LEVEL \
 	vc \
 	--datadir $DATADIR/node_1 \
 	--testnet-dir $TESTNET_DIR \
-	--terminal-block-hash-epoch-override 0 \
-	--terminal-block-hash-override 0 \
 	--init-slashing-protection \
 	--beacon-nodes http://localhost:$LIGHTHOUSE_HTTP_PORT \
 	&> $LOG_FOLDER/validator_node.log &
 
 # TODO https://github.com/sigp/lighthouse/pull/3364
+
+sleep infinity
 
 
 #geth --identity "GravityTestnet" \
