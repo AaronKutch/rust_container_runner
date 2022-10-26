@@ -14,10 +14,9 @@
     "londonBlock": 0,
     "arrowGlacierBlock": 0,
     "grayGlacierBlock": 0,
-    "terminalTotalDifficulty": 150000,
-    "terminalTotalDifficultyPassed": true,
-    "mergeNetsplitBlock": 0,
-    "mergeForkBlock": 0
+    "terminalTotalDifficulty": 5000000,
+    "mergeNetsplitBlock": 20,
+    "mergeForkBlock": 10
   },
   "alloc": {
     "0xBf660843528035a5A4921534E156a27e64B231fE": {

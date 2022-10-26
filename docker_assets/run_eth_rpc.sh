@@ -58,6 +58,9 @@ until [ "$(curl -s --header "content-type: application/json" --data '{"id":1,"js
 	sleep 1
 done
 
+ #   //"mergeNetsplitBlock": 0,
+
+
 #ganache \
 #	--defaultBalanceEther 1000000000 \
 #	--gasLimit 1000000000 \
@@ -89,8 +92,8 @@ lcli \
 	--eth1-follow-distance 1 \
 	--seconds-per-slot $SECONDS_PER_SLOT \
 	--seconds-per-eth1-block $SECONDS_PER_ETH1_BLOCK \
+	--merge-fork-epoch 0 \
 	--force
-	#--merge-fork-epoch 1 \
 lcli \
 	insecure-validators \
 	--count 1 \
@@ -136,7 +139,7 @@ lighthouse \
     --http-allow-sync-stalled \
     --execution-endpoint $EXECUTION_ENDPOINT \
 	--execution-jwt $LOG_FOLDER/jwtsecret \
-	--terminal-total-difficulty-override=150000 \
+	--terminal-total-difficulty-override=5000000 \
 	--staking \
 	--suggested-fee-recipient=0xBf660843528035a5A4921534E156a27e64B231fE \
 	&> $LOG_FOLDER/beacon_node.log &
@@ -159,7 +162,7 @@ lighthouse \
     --http-allow-sync-stalled \
     --execution-endpoint $EXECUTION_ENDPOINT \
 	--execution-jwt $LOG_FOLDER/jwtsecret \
-	--terminal-total-difficulty-override=150000 \
+	--terminal-total-difficulty-override=5000000 \
 	--staking \
 	--suggested-fee-recipient=0xBf660843528035a5A4921534E156a27e64B231fE \
 	&> $LOG_FOLDER/beacon_node2.log &
