@@ -19,25 +19,35 @@ rm -rf $DATADIR
 
 #sleep infinity
 
+GETH_authrpc=8551
+
+# NOTE do not go down bootnode rabbithole, it is only for multiple `geth`s
+#--bootnodes enode://$(cat $DATADIR/geth_bootnode.addr)@127.0.0.1:30301 \
+
 geth --identity "GravityTestnet" \
+	--datadir $DATADIR/geth \
     --nodiscover \
     --networkid 15 \
     init $LOG_FOLDER/ETHGenesis.json
 geth \
 	--nodiscover \
+	--datadir $DATADIR/geth \
+    --http \
+    --http.addr="0.0.0.0" \
+    --http.vhosts="*" \
+    --http.corsdomain="*" \
 	--allow-insecure-unlock \
 	--unlock 0xBf660843528035a5A4921534E156a27e64B231fE \
 	--keystore $LOG_FOLDER/dev_keystore \
 	--password $LOG_FOLDER/dev_password.txt \
 	--authrpc.addr localhost \
-	--authrpc.port 8551 \
+	--authrpc.port $GETH_authrpc \
 	--authrpc.vhosts localhost \
 	--authrpc.jwtsecret $LOG_FOLDER/jwtsecret \
-    --http \
-    --http.addr="0.0.0.0" \
-    --http.vhosts="*" \
-    --http.corsdomain="*" \
     --verbosity=4 \
+	--mine \
+	--miner.threads=1 \
+	--miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE \
 	&> $LOG_FOLDER/geth.log &
 
 echo "waiting for geth to come online"
@@ -101,9 +111,6 @@ lcli \
 	--genesis-fork-version $GENESIS_FORK_VERSION \
 	--output-dir $DATADIR/bootnode
 
-bootnode_enr=`cat $DATADIR/bootnode/enr.dat`
-echo "- $bootnode_enr" > $TESTNET_DIR/boot_enr.yaml
-
 # boot node
 lighthouse boot_node \
     --testnet-dir $TESTNET_DIR \
@@ -126,37 +133,35 @@ lighthouse \
 	--port $LIGHTHOUSE_TCP_PORT \
 	--http-port $LIGHTHOUSE_HTTP_PORT \
 	--disable-packet-filter \
-	--target-peers 1 \
+	--target-peers 0 \
     --http-allow-sync-stalled \
     --execution-endpoint $EXECUTION_ENDPOINT \
 	--execution-jwt $LOG_FOLDER/jwtsecret \
 	--terminal-total-difficulty-override=5000000 \
 	--staking \
 	&> $LOG_FOLDER/beacon_node.log &
-	#--eth1 \
 	# causes errors
 	#--disable-deposit-contract-sync \
-lighthouse \
-	--debug-level $DEBUG_LEVEL \
-	bn \
-    --subscribe-all-subnets \
-	--datadir $DATADIR/node_2 \
-	--testnet-dir $TESTNET_DIR \
-	--enable-private-discovery \
-	--enr-address 127.0.0.1 \
-	--enr-udp-port $LIGHTHOUSE_TCP_PORT2 \
-	--enr-tcp-port $LIGHTHOUSE_TCP_PORT2 \
-	--port $LIGHTHOUSE_TCP_PORT2 \
-	--http-port $LIGHTHOUSE_HTTP_PORT2 \
-	--disable-packet-filter \
-	--target-peers 1 \
-    --http-allow-sync-stalled \
-    --execution-endpoint $EXECUTION_ENDPOINT \
-	--execution-jwt $LOG_FOLDER/jwtsecret \
-	--terminal-total-difficulty-override=5000000 \
-	--staking \
-	&> $LOG_FOLDER/beacon_node.log &
-	#--eth1 \
+# lighthouse \
+# 	--debug-level $DEBUG_LEVEL \
+# 	bn \
+#     --subscribe-all-subnets \
+# 	--datadir $DATADIR/node_2 \
+# 	--testnet-dir $TESTNET_DIR \
+# 	--enable-private-discovery \
+# 	--enr-address 127.0.0.1 \
+# 	--enr-udp-port $LIGHTHOUSE_TCP_PORT2 \
+# 	--enr-tcp-port $LIGHTHOUSE_TCP_PORT2 \
+# 	--port $LIGHTHOUSE_TCP_PORT2 \
+# 	--http-port $LIGHTHOUSE_HTTP_PORT2 \
+# 	--disable-packet-filter \
+# 	--target-peers 1 \
+#     --http-allow-sync-stalled \
+#     --execution-endpoint $EXECUTION_ENDPOINT \
+# 	--execution-jwt $LOG_FOLDER/jwtsecret \
+# 	--terminal-total-difficulty-override=5000000 \
+# 	--staking \
+# 	&> $LOG_FOLDER/beacon_node.log &
 	# causes errors
 	#--disable-deposit-contract-sync \
 # validator
