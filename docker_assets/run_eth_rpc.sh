@@ -27,7 +27,6 @@ GETH_authrpc=8551
 geth --identity "GravityTestnet" \
 	--datadir $DATADIR/geth \
     --nodiscover \
-    --networkid 15 \
     init $LOG_FOLDER/ETHGenesis.json
 geth \
 	--nodiscover \
@@ -90,8 +89,8 @@ lcli \
 	--eth1-follow-distance 1 \
 	--seconds-per-slot $SECONDS_PER_SLOT \
 	--seconds-per-eth1-block $SECONDS_PER_ETH1_BLOCK \
+	--merge-fork-epoch 0 \
 	--force
-	#--merge-fork-epoch 0 \
 lcli \
 	insecure-validators \
 	--count 1 \
@@ -133,37 +132,37 @@ lighthouse \
 	--port $LIGHTHOUSE_TCP_PORT \
 	--http-port $LIGHTHOUSE_HTTP_PORT \
 	--disable-packet-filter \
-	--target-peers 0 \
+	--target-peers 1 \
     --http-allow-sync-stalled \
     --execution-endpoint $EXECUTION_ENDPOINT \
 	--execution-jwt $LOG_FOLDER/jwtsecret \
-	--terminal-total-difficulty-override=5000000 \
+	--terminal-total-difficulty-override=150000 \
 	--staking \
+	--suggested-fee-recipient=0xBf660843528035a5A4921534E156a27e64B231fE \
 	&> $LOG_FOLDER/beacon_node.log &
 	# causes errors
 	#--disable-deposit-contract-sync \
-# lighthouse \
-# 	--debug-level $DEBUG_LEVEL \
-# 	bn \
-#     --subscribe-all-subnets \
-# 	--datadir $DATADIR/node_2 \
-# 	--testnet-dir $TESTNET_DIR \
-# 	--enable-private-discovery \
-# 	--enr-address 127.0.0.1 \
-# 	--enr-udp-port $LIGHTHOUSE_TCP_PORT2 \
-# 	--enr-tcp-port $LIGHTHOUSE_TCP_PORT2 \
-# 	--port $LIGHTHOUSE_TCP_PORT2 \
-# 	--http-port $LIGHTHOUSE_HTTP_PORT2 \
-# 	--disable-packet-filter \
-# 	--target-peers 1 \
-#     --http-allow-sync-stalled \
-#     --execution-endpoint $EXECUTION_ENDPOINT \
-# 	--execution-jwt $LOG_FOLDER/jwtsecret \
-# 	--terminal-total-difficulty-override=5000000 \
-# 	--staking \
-# 	&> $LOG_FOLDER/beacon_node.log &
-	# causes errors
-	#--disable-deposit-contract-sync \
+lighthouse \
+	--debug-level $DEBUG_LEVEL \
+	bn \
+    --subscribe-all-subnets \
+	--datadir $DATADIR/node_2 \
+	--testnet-dir $TESTNET_DIR \
+	--enable-private-discovery \
+	--enr-address 127.0.0.1 \
+	--enr-udp-port $LIGHTHOUSE_TCP_PORT2 \
+	--enr-tcp-port $LIGHTHOUSE_TCP_PORT2 \
+	--port $LIGHTHOUSE_TCP_PORT2 \
+	--http-port $LIGHTHOUSE_HTTP_PORT2 \
+	--disable-packet-filter \
+	--target-peers 1 \
+    --http-allow-sync-stalled \
+    --execution-endpoint $EXECUTION_ENDPOINT \
+	--execution-jwt $LOG_FOLDER/jwtsecret \
+	--terminal-total-difficulty-override=150000 \
+	--staking \
+	--suggested-fee-recipient=0xBf660843528035a5A4921534E156a27e64B231fE \
+	&> $LOG_FOLDER/beacon_node2.log &
 # validator
 lighthouse \
 	--debug-level $DEBUG_LEVEL \
@@ -172,6 +171,7 @@ lighthouse \
 	--testnet-dir $TESTNET_DIR \
 	--init-slashing-protection \
 	--beacon-nodes http://localhost:$LIGHTHOUSE_HTTP_PORT \
+	--suggested-fee-recipient=0xBf660843528035a5A4921534E156a27e64B231fE \
 	&> $LOG_FOLDER/validator_node.log &
 
 # TODO https://github.com/sigp/lighthouse/pull/3364

@@ -69,7 +69,9 @@ read -p "Press Return to Close..."
 
 #curl -s --header "Content-Type: application/json" --data '{"method":"eth_getBlockByNumber","params":["finalized",false],"id":99,"jsonrpc":"2.0"}' http://localhost:8545
 #curl -s --header "Content-Type: application/json" --data '{"method":"eth_getBlockByNumber","params":["latest",false],"id":99,"jsonrpc":"2.0"}' http://localhost:8545
-
+#curl -s --header "Content-Type: application/json" --data '{"method":"eth_getBalance","params":["0xBf660843528035a5A4921534E156a27e64B231fE"],"id":99,"jsonrpc":"2.0"}' http://localhost:8545
+#curl -s --header "content-type: application/json" --data '{"id":12,"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf86f808506fc23ac00825dc094b3d82b1367d362de99ab59a658165aff520cbd4d8b084595161401484a0000008025a075f7149a8b51b5d8808d8ec06af765f754d0a841e55a6d5e86a671fb262d5daea035fa0f2a06a501f776b121388784e98a91d526c663133e49367a783a94608b62"]}' http://localhost:8545
+#curl -s --header "Content-Type: application/json" --data '{"method":"net_version","params":[],"id":99,"jsonrpc":"2.0"}' http://localhost:8545
 
 #docker rm -f $DOCKER_ID_TCP
 docker rm -f $DOCKER_ID_ETH_RPC
