@@ -9,10 +9,14 @@
     "constantinopleBlock": 0,
     "petersburgBlock": 0,
     "istanbulBlock": 0,
+    "muirGlacierBlock": 0,
     "berlinBlock": 0,
     "londonBlock": 0,
-    "mergeForkBlock": 100,
-    "terminalTotalDifficulty": 60000000
+    "arrowGlacierBlock": 0,
+    "grayGlacierBlock": 0,
+    "terminalTotalDifficulty": 60000000,
+    "terminalTotalDifficultyPassed": true,
+    "mergeNetsplitBlock": 0
   },
   "alloc": {
     "0xBf660843528035a5A4921534E156a27e64B231fE": {

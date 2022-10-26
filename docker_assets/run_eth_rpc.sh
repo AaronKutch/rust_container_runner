@@ -120,7 +120,6 @@ lighthouse \
 	--datadir $DATADIR/node_1 \
 	--testnet-dir $TESTNET_DIR \
 	--enable-private-discovery \
-	--staking \
 	--enr-address 127.0.0.1 \
 	--enr-udp-port $LIGHTHOUSE_TCP_PORT \
 	--enr-tcp-port $LIGHTHOUSE_TCP_PORT \
@@ -131,12 +130,12 @@ lighthouse \
     --http-allow-sync-stalled \
     --execution-endpoint $EXECUTION_ENDPOINT \
 	--execution-jwt $LOG_FOLDER/jwtsecret \
-	--eth1 \
-	--merge \
 	--terminal-total-difficulty-override=60000000 \
-	--eth1-endpoints $ETH_ENDPOINT \
+	--staking \
 	&> $LOG_FOLDER/beacon_node.log &
-# may need second beacon node for peering
+	#--eth1 \
+	# causes errors
+	#--disable-deposit-contract-sync \
 lighthouse \
 	--debug-level $DEBUG_LEVEL \
 	bn \
@@ -144,7 +143,6 @@ lighthouse \
 	--datadir $DATADIR/node_2 \
 	--testnet-dir $TESTNET_DIR \
 	--enable-private-discovery \
-	--staking \
 	--enr-address 127.0.0.1 \
 	--enr-udp-port $LIGHTHOUSE_TCP_PORT2 \
 	--enr-tcp-port $LIGHTHOUSE_TCP_PORT2 \
@@ -155,11 +153,34 @@ lighthouse \
     --http-allow-sync-stalled \
     --execution-endpoint $EXECUTION_ENDPOINT \
 	--execution-jwt $LOG_FOLDER/jwtsecret \
-	--eth1 \
-	--merge \
 	--terminal-total-difficulty-override=60000000 \
-	--eth1-endpoints $ETH_ENDPOINT \
+	--staking \
+	&> $LOG_FOLDER/beacon_node.log &
+	#--eth1 \
+	# causes errors
+	#--disable-deposit-contract-sync \
+# may need second beacon node for peering
+lighthouse \
+	--debug-level $DEBUG_LEVEL \
+	bn \
+    --subscribe-all-subnets \
+	--datadir $DATADIR/node_2 \
+	--testnet-dir $TESTNET_DIR \
+	--enable-private-discovery \
+	--enr-address 127.0.0.1 \
+	--enr-udp-port $LIGHTHOUSE_TCP_PORT2 \
+	--enr-tcp-port $LIGHTHOUSE_TCP_PORT2 \
+	--port $LIGHTHOUSE_TCP_PORT2 \
+	--http-port $LIGHTHOUSE_HTTP_PORT2 \
+	--disable-packet-filter \
+	--target-peers 1 \
+    --http-allow-sync-stalled \
+    --execution-endpoint $EXECUTION_ENDPOINT \
+	--execution-jwt $LOG_FOLDER/jwtsecret \
+	--terminal-total-difficulty-override=60000000 \
 	&> $LOG_FOLDER/beacon_node2.log &
+	#--staking \
+	#--eth1 \
 # validator
 lighthouse \
 	--debug-level $DEBUG_LEVEL \
@@ -172,8 +193,7 @@ lighthouse \
 
 # TODO https://github.com/sigp/lighthouse/pull/3364
 
-sleep infinity
-
+#sleep infinity
 
 #geth --identity "GravityTestnet" \
 #    --nodiscover \
@@ -271,9 +291,11 @@ sleep infinity
 #    --datadir="/opera_datadir" &> /rust_container_runner/docker_assets/opera.log &
 
 # give time for bash redirection
-sleep 1
+sleep 5
 # neon
 #curl -i -X POST -d '{"wallet": "0xBf660843528035a5A4921534E156a27e64B231fE", "amount": 900000000}' 'http://host_faucet:3333/request_neon'
 #sleep 1
 
-RUST_LOG="TRACE" RUST_BACKTRACE=full /rust_container_runner/docker_assets/eth_rpc
+RUST_LOG="TRACE" RUST_BACKTRACE=full /rust_container_runner/docker_assets/eth_rpc &> /rust_container_runner/docker_assets/eth_rpc.log &
+
+sleep infinity
