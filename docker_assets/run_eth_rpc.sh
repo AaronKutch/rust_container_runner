@@ -6,12 +6,12 @@ set -eux
 pushd /
 
 LOG_FOLDER=/rust_container_runner/docker_assets
-source /rust_container_runner/docker_assets/lighthouse.env
-DEBUG_LEVEL=info
+#source /rust_container_runner/docker_assets/lighthouse.env
+#DEBUG_LEVEL=info
 
 # only for NO_SCRIPTS rerunning
-DATADIR=~/.lighthouse/local-testnet
-rm -rf $DATADIR
+#DATADIR=~/.lighthouse/local-testnet
+#rm -rf $DATADIR
 
 # `jwtsecret` was generated with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
@@ -19,18 +19,25 @@ rm -rf $DATADIR
 
 #sleep infinity
 
+# curl http://host_lodestar:9596/eth/v1/node/identity
+
+# echo "waiting for lodestar to come online"
+# until $(curl --output /dev/null --fail --silent http://host_lodestar:9596/eth/v1/node/identity); do
+# 	sleep 1
+# done
+# echo "writing enr to file"
+# curl http://host_lodestar:9596/eth/v1/node/identity > $LOG_FOLDER/lodestar_enr
+
 GETH_authrpc=8551
 
 # NOTE do not go down bootnode rabbithole, it is only for multiple `geth`s
 #--bootnodes enode://$(cat $DATADIR/geth_bootnode.addr)@127.0.0.1:30301 \
 
 geth --identity "GravityTestnet" \
-	--datadir $DATADIR/geth \
     --nodiscover \
     init $LOG_FOLDER/ETHGenesis.json
 geth \
 	--nodiscover \
-	--datadir $DATADIR/geth \
     --http \
     --http.addr="0.0.0.0" \
     --http.vhosts="*" \
@@ -44,10 +51,11 @@ geth \
 	--authrpc.vhosts localhost \
 	--authrpc.jwtsecret $LOG_FOLDER/jwtsecret \
     --verbosity=4 \
-	--mine \
-	--miner.threads=1 \
-	--miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE \
+	--syncmode full \
 	&> $LOG_FOLDER/geth.log &
+	# --mine \
+	# --miner.threads=1 \
+	# --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE \
 
 echo "waiting for geth to come online"
 until $(curl --output /dev/null --fail --silent --header "content-type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' http://localhost:8545); do
@@ -76,106 +84,106 @@ done
 #	--eth1-http http://localhost:8545 \
 #	--confirmations 1 \
 #	--validator-count 1
-NOW=`date +%s`
-GENESIS_TIME=`expr $NOW + $GENESIS_DELAY`
-lcli \
-	new-testnet \
-	--spec $SPEC_PRESET \
-	--deposit-contract-address $DEPOSIT_CONTRACT_ADDRESS \
-	--testnet-dir $TESTNET_DIR \
-	--min-genesis-active-validator-count 1 \
-	--min-genesis-time $GENESIS_TIME \
-	--genesis-delay $GENESIS_DELAY \
-	--genesis-fork-version $GENESIS_FORK_VERSION \
-	--altair-fork-epoch $ALTAIR_FORK_EPOCH \
-	--eth1-id $CHAIN_ID \
-	--eth1-follow-distance 1 \
-	--seconds-per-slot $SECONDS_PER_SLOT \
-	--seconds-per-eth1-block $SECONDS_PER_ETH1_BLOCK \
-	--merge-fork-epoch 0 \
-	--force
-lcli \
-	insecure-validators \
-	--count 1 \
-	--base-dir $DATADIR \
-	--node-count 1
-lcli \
-	interop-genesis \
-	--spec $SPEC_PRESET \
-	--genesis-time $GENESIS_TIME \
-	--testnet-dir $TESTNET_DIR \
-	1
-lcli \
-	generate-bootnode-enr \
-	--ip 127.0.0.1 \
-	--udp-port $BOOTNODE_PORT \
-	--tcp-port $BOOTNODE_PORT \
-	--genesis-fork-version $GENESIS_FORK_VERSION \
-	--output-dir $DATADIR/bootnode
+# NOW=`date +%s`
+# GENESIS_TIME=`expr $NOW + $GENESIS_DELAY`
+# lcli \
+# 	new-testnet \
+# 	--spec $SPEC_PRESET \
+# 	--deposit-contract-address $DEPOSIT_CONTRACT_ADDRESS \
+# 	--testnet-dir $TESTNET_DIR \
+# 	--min-genesis-active-validator-count 1 \
+# 	--min-genesis-time $GENESIS_TIME \
+# 	--genesis-delay $GENESIS_DELAY \
+# 	--genesis-fork-version $GENESIS_FORK_VERSION \
+# 	--altair-fork-epoch $ALTAIR_FORK_EPOCH \
+# 	--eth1-id $CHAIN_ID \
+# 	--eth1-follow-distance 1 \
+# 	--seconds-per-slot $SECONDS_PER_SLOT \
+# 	--seconds-per-eth1-block $SECONDS_PER_ETH1_BLOCK \
+# 	--merge-fork-epoch 0 \
+# 	--force
+# lcli \
+# 	insecure-validators \
+# 	--count 1 \
+# 	--base-dir $DATADIR \
+# 	--node-count 1
+# lcli \
+# 	interop-genesis \
+# 	--spec $SPEC_PRESET \
+# 	--genesis-time $GENESIS_TIME \
+# 	--testnet-dir $TESTNET_DIR \
+# 	1
+# lcli \
+# 	generate-bootnode-enr \
+# 	--ip 127.0.0.1 \
+# 	--udp-port $BOOTNODE_PORT \
+# 	--tcp-port $BOOTNODE_PORT \
+# 	--genesis-fork-version $GENESIS_FORK_VERSION \
+# 	--output-dir $DATADIR/bootnode
 
-# boot node
-lighthouse boot_node \
-    --testnet-dir $TESTNET_DIR \
-    --port $BOOTNODE_PORT \
-    --listen-address 127.0.0.1 \
-	--disable-packet-filter \
-    --network-dir $DATADIR/bootnode \
-	&> $LOG_FOLDER/boot_node.log &
-# beacon node
-lighthouse \
-	--debug-level $DEBUG_LEVEL \
-	bn \
-    --subscribe-all-subnets \
-	--datadir $DATADIR/node_1 \
-	--testnet-dir $TESTNET_DIR \
-	--enable-private-discovery \
-	--enr-address 127.0.0.1 \
-	--enr-udp-port $LIGHTHOUSE_TCP_PORT \
-	--enr-tcp-port $LIGHTHOUSE_TCP_PORT \
-	--port $LIGHTHOUSE_TCP_PORT \
-	--http-port $LIGHTHOUSE_HTTP_PORT \
-	--disable-packet-filter \
-	--target-peers 1 \
-    --http-allow-sync-stalled \
-    --execution-endpoint $EXECUTION_ENDPOINT \
-	--execution-jwt $LOG_FOLDER/jwtsecret \
-	--terminal-total-difficulty-override=5000000 \
-	--staking \
-	--suggested-fee-recipient=0xBf660843528035a5A4921534E156a27e64B231fE \
-	&> $LOG_FOLDER/beacon_node.log &
-	# causes errors
-	#--disable-deposit-contract-sync \
-lighthouse \
-	--debug-level $DEBUG_LEVEL \
-	bn \
-    --subscribe-all-subnets \
-	--datadir $DATADIR/node_2 \
-	--testnet-dir $TESTNET_DIR \
-	--enable-private-discovery \
-	--enr-address 127.0.0.1 \
-	--enr-udp-port $LIGHTHOUSE_TCP_PORT2 \
-	--enr-tcp-port $LIGHTHOUSE_TCP_PORT2 \
-	--port $LIGHTHOUSE_TCP_PORT2 \
-	--http-port $LIGHTHOUSE_HTTP_PORT2 \
-	--disable-packet-filter \
-	--target-peers 1 \
-    --http-allow-sync-stalled \
-    --execution-endpoint $EXECUTION_ENDPOINT \
-	--execution-jwt $LOG_FOLDER/jwtsecret \
-	--terminal-total-difficulty-override=5000000 \
-	--staking \
-	--suggested-fee-recipient=0xBf660843528035a5A4921534E156a27e64B231fE \
-	&> $LOG_FOLDER/beacon_node2.log &
-# validator
-lighthouse \
-	--debug-level $DEBUG_LEVEL \
-	vc \
-	--datadir $DATADIR/node_1 \
-	--testnet-dir $TESTNET_DIR \
-	--init-slashing-protection \
-	--beacon-nodes http://localhost:$LIGHTHOUSE_HTTP_PORT \
-	--suggested-fee-recipient=0xBf660843528035a5A4921534E156a27e64B231fE \
-	&> $LOG_FOLDER/validator_node.log &
+# # boot node
+# lighthouse boot_node \
+#     --testnet-dir $TESTNET_DIR \
+#     --port $BOOTNODE_PORT \
+#     --listen-address 127.0.0.1 \
+# 	--disable-packet-filter \
+#     --network-dir $DATADIR/bootnode \
+# 	&> $LOG_FOLDER/boot_node.log &
+# # beacon node
+# lighthouse \
+# 	--debug-level $DEBUG_LEVEL \
+# 	bn \
+#     --subscribe-all-subnets \
+# 	--datadir $DATADIR/node_1 \
+# 	--testnet-dir $TESTNET_DIR \
+# 	--enable-private-discovery \
+# 	--enr-address 127.0.0.1 \
+# 	--enr-udp-port $LIGHTHOUSE_TCP_PORT \
+# 	--enr-tcp-port $LIGHTHOUSE_TCP_PORT \
+# 	--port $LIGHTHOUSE_TCP_PORT \
+# 	--http-port $LIGHTHOUSE_HTTP_PORT \
+# 	--disable-packet-filter \
+# 	--target-peers 1 \
+#     --http-allow-sync-stalled \
+#     --execution-endpoint $EXECUTION_ENDPOINT \
+# 	--execution-jwt $LOG_FOLDER/jwtsecret \
+# 	--terminal-total-difficulty-override=5000000 \
+# 	--staking \
+# 	--suggested-fee-recipient=0xBf660843528035a5A4921534E156a27e64B231fE \
+# 	&> $LOG_FOLDER/beacon_node.log &
+# 	# causes errors
+# 	#--disable-deposit-contract-sync \
+# lighthouse \
+# 	--debug-level $DEBUG_LEVEL \
+# 	bn \
+#     --subscribe-all-subnets \
+# 	--datadir $DATADIR/node_2 \
+# 	--testnet-dir $TESTNET_DIR \
+# 	--enable-private-discovery \
+# 	--enr-address 127.0.0.1 \
+# 	--enr-udp-port $LIGHTHOUSE_TCP_PORT2 \
+# 	--enr-tcp-port $LIGHTHOUSE_TCP_PORT2 \
+# 	--port $LIGHTHOUSE_TCP_PORT2 \
+# 	--http-port $LIGHTHOUSE_HTTP_PORT2 \
+# 	--disable-packet-filter \
+# 	--target-peers 1 \
+#     --http-allow-sync-stalled \
+#     --execution-endpoint $EXECUTION_ENDPOINT \
+# 	--execution-jwt $LOG_FOLDER/jwtsecret \
+# 	--terminal-total-difficulty-override=5000000 \
+# 	--staking \
+# 	--suggested-fee-recipient=0xBf660843528035a5A4921534E156a27e64B231fE \
+# 	&> $LOG_FOLDER/beacon_node2.log &
+# # validator
+# lighthouse \
+# 	--debug-level $DEBUG_LEVEL \
+# 	vc \
+# 	--datadir $DATADIR/node_1 \
+# 	--testnet-dir $TESTNET_DIR \
+# 	--init-slashing-protection \
+# 	--beacon-nodes http://localhost:$LIGHTHOUSE_HTTP_PORT \
+# 	--suggested-fee-recipient=0xBf660843528035a5A4921534E156a27e64B231fE \
+# 	&> $LOG_FOLDER/validator_node.log &
 
 # TODO https://github.com/sigp/lighthouse/pull/3364
 
@@ -277,7 +285,7 @@ lighthouse \
 #    --datadir="/opera_datadir" &> /rust_container_runner/docker_assets/opera.log &
 
 # give time for bash redirection
-sleep 5
+sleep 15
 # neon
 #curl -i -X POST -d '{"wallet": "0xBf660843528035a5A4921534E156a27e64B231fE", "amount": 900000000}' 'http://host_faucet:3333/request_neon'
 #sleep 1

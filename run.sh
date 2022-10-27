@@ -49,6 +49,8 @@ cp $REPOFOLDER/target/$RCR_TARGET/release/tcp $DOCKERFOLDER/tcp
 docker rm -f rust_test_runner_image
 docker build -t rust_test_runner_image $PLATFORM_CMD .
 
+LODESTAR_VERSION=v1.1.1
+
 set +e
 docker network rm testnet
 set -e
@@ -61,6 +63,21 @@ DOCKER_ID_ETH_RPC=$(docker create --network=testnet --hostname="host_eth_rpc" --
 
 docker start $DOCKER_ID_ETH_RPC
 docker attach $DOCKER_ID_ETH_RPC &> $DOCKERFOLDER/host_eth_rpc.log &
+
+DOCKER_ID_LODESTAR_BEACON=$(docker create --network=testnet --hostname="host_lodestar" --name="host_lodestar" ${PLATFORM_CMD} ${VOLUME_ARGS} chainsafe/lodestar:${LODESTAR_VERSION} dev --genesisValidators 4 --genesisTime 0 --startValidators 0..4 --enr.ip 127.0.0.1 --rest.address 0.0.0.0 --rest.port 9596 --params.ALTAIR_FORK_EPOCH 0 --params.BELLATRIX_FORK_EPOCH 0 --terminal-total-difficulty-override 0 --suggestedFeeRecipient 0xBf660843528035a5A4921534E156a27e64B231fE --execution.urls https://host_eth_rpc:8545)
+
+docker start $DOCKER_ID_LODESTAR_BEACON
+docker attach $DOCKER_ID_LODESTAR_BEACON &> $DOCKERFOLDER/host_lodestar.log &
+
+# {"data":{"peer_id":"16Uiu2HAmLLP2GcPBELTN4spLxB7Lfe1REDF4NZgEPoQJ6c11NgBR","enr":"enr:-La4QGT-m9zM1XmuFA3N_E_ZUWpfN6SLVdyJimkF43zz9t3uFCwDOa5CUCE1ga-MTQGTSb_nMOnRBjEKpiKQe7hZnrQFh2F0dG5ldHOIAAAAAAAAAACEZXRoMpCFKNLJAgAAAf__________gmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQNyGRhuGmIqrEttr0Ll7qmAD8bs7bsRQmZugfZP3dpWYIhzeW5jbmV0c4gAAAAAAAAAAA","p2p_addresses":["/ip4/127.0.0.1/tcp/9000","/ip4/172.25.0.3/tcp/9000"],"discovery_addresses":[],"metadata":{"seq_number":"0","attnets":"0x0000000000000000","syncnets":"0x00"}}}
+
+LODESTAR_ENR='{"data":{"peer_id":"16Uiu2HAmMnQSXsUBzKoCBRkWSPsGUCF95ZhxsmfbxzhExK6NjEFM","enr":"enr:-La4QEdn4PlVChPxKuxkDxUVroDUt-84p8wWT0VmTLMcwJvHdL1Y6sTs0aOCTvP_faTSFZ1_t5hCaVzBw7u6InVJvAgFh2F0dG5ldHOIAAAAAAAAAACEZXRoMpCFKNLJAgAAAf__________gmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQOHn3yywAuL7ADBJJPG2oYbBPerP8GOr_ozl-nP9E6CFIhzeW5jbmV0c4gAAAAAAAAAAA","p2p_addresses":["/ip4/127.0.0.1/tcp/9000","/ip4/172.26.0.3/tcp/9000"],"discovery_addresses":[],"metadata":{"seq_number":"0","attnets":"0x0000000000000000","syncnets":"0x00"}}}'
+#$LOG_FOLDER/lodestar_enr
+
+DOCKER_ID_LODESTAR_VALIDATORS=$(docker create --network=testnet --hostname="host_lodestar_validators" --name="host_lodestar_validators" ${PLATFORM_CMD} ${VOLUME_ARGS} chainsafe/lodestar:${LODESTAR_VERSION} dev --genesisValidators 4 --genesisTime 0 --port 9001 --rest.port 9597 --server="https://host_lodestar:9596" --params.ALTAIR_FORK_EPOCH 0 --params.BELLATRIX_FORK_EPOCH 0 --terminal-total-difficulty-override 0 --suggestedFeeRecipient 0xBf660843528035a5A4921534E156a27e64B231fE --execution.urls https://host_eth_rpc:8545)
+
+docker start $DOCKER_ID_LODESTAR_VALIDATORS
+docker attach $DOCKER_ID_LODESTAR_VALIDATORS &> $DOCKERFOLDER/host_lodestar_validators.log &
 
 read -p "Press Return to Close..."
 
@@ -75,3 +92,5 @@ read -p "Press Return to Close..."
 
 #docker rm -f $DOCKER_ID_TCP
 docker rm -f $DOCKER_ID_ETH_RPC
+docker rm -f $DOCKER_ID_LODESTAR_BEACON
+docker rm -f $DOCKER_ID_LODESTAR_VALIDATORS
