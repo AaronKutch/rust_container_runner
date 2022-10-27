@@ -76,6 +76,7 @@ pushd /
 # `opera --datadir /opera_datadir/ export genesis /gravity/tests/assets/test_genesis.g --export.evm.mode=ext-mpt`
 # which will convert the state of the testchain up to that point into a new genesis that we
 # use for normal runs. Commit the `test_genesis.g` and undo the other changes.
+
 opera --fakenet 1/1 \
     --nodiscover \
     --http \
