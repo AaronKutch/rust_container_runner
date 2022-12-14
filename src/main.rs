@@ -76,7 +76,7 @@ pub async fn main() {
         .request_method("eth_syncing", Vec::<String>::new(), Duration::from_secs(10))
         .await;
     dbg!(res);*/
-    tokio::spawn(async move {
+    /*tokio::spawn(async move {
         use std::str::FromStr;
         // we need a duplicate `send_eth_bulk` that uses a different
         // private key and does not wait on transactions, otherwise we
@@ -124,11 +124,11 @@ pub async fn main() {
             .await;
             tokio::time::sleep(Duration::from_millis(2000)).await;
         }
-    });
+    });*/
 
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
-    sleep(Duration::from_secs(20)).await;
+    //sleep(Duration::from_secs(20)).await;
     //web3.wait_for_next_block(Duration::from_secs(120))
     //    .await
     //    .unwrap();
@@ -147,7 +147,7 @@ pub async fn main() {
     );
     dbg!("sending to eth");
     send_eth_bulk(
-        u256!(10000000000000000000000000),
+        u256!(1337),
         &[EthAddress::from_str("0xb3d82b1367d362de99ab59a658165aff520cbd4d").unwrap()],
         &web3,
     )
@@ -183,7 +183,7 @@ async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {
 }
 
 pub async fn send_eth_bulk(amount: Uint256, destinations: &[EthAddress], web3: &Web3) {
-    let net_version = web3.net_version().await.unwrap();
+    let net_version = 111;//web3.net_version().await.unwrap();
     let mut nonce = web3
         .eth_get_transaction_count(*MINER_ADDRESS)
         .await
@@ -196,7 +196,7 @@ pub async fn send_eth_bulk(amount: Uint256, destinations: &[EthAddress], web3: &
             to: *address,
             nonce,
             gas_price: gas_price.checked_mul(u256!(2)).unwrap(),
-            gas_limit: u256!(24000),
+            gas_limit: u256!(2405040),
             value: amount,
             data: Vec::new(),
             signature: None,
