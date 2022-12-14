@@ -1,5 +1,5 @@
 #![allow(unused_must_use)]
-use std::{env, time::Duration};
+use std::{env, str::FromStr, time::Duration};
 
 use clarity::{
     address::Address as EthAddress, u256, PrivateKey as EthPrivateKey, Transaction, Uint256,
@@ -146,20 +146,52 @@ pub async fn main() {
     //    .await
     //    .unwrap();
 
-    let (_private_keys, public_keys) = random_keys(200);
-    let send_amount = u256!(10000000);
+    // starting address amount
+    dbg!(
+        web3.eth_get_balance(
+            EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
+        )
+        .await
+    );
+
+    let (_private_keys, public_keys) = random_keys(500);
+    let send_amount = u256!(1);
     send_eth_bulk(send_amount, &public_keys, &web3).await;
     web3.wait_for_next_block(Duration::from_secs(30))
         .await
         .unwrap();
     for (i, key) in public_keys.iter().enumerate() {
         if web3.eth_get_balance(*key).await.unwrap() != send_amount {
-            panic!(
-                "transaction did not actually happen for the {}th key {}",
+            dbg!();
+            // wait for an extra 30 seconds for the block stimulator to cause more blocks,
+            // show that the transaction totally failed and the bug is not just with
+            // unerrored txids being returned
+            sleep(Duration::from_secs(30)).await;
+            dbg!(web3.eth_get_balance(*key).await.unwrap(), send_amount);
+            println!(
+                "transaction did not actually happen for key {} ({})",
                 i, key
-            )
+            );
+            break
         }
     }
+
+    let mut tot_failed = 0;
+    for key in &public_keys {
+        if web3.eth_get_balance(*key).await.unwrap() != send_amount {
+            tot_failed += 1;
+        }
+    }
+
+    println!("{} txns failed", tot_failed);
+
+    // ending address amount
+    dbg!(
+        web3.eth_get_balance(
+            EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
+        )
+        .await
+    );
 
     /*dbg!(
         web3.eth_get_balance(
