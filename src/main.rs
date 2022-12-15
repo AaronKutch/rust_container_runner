@@ -6,7 +6,7 @@ use clarity::{
 };
 use futures::future::join_all;
 use lazy_static::lazy_static;
-use tokio::{net::TcpStream, time::sleep};
+use tokio::time::sleep;
 use web30::{client::Web3, jsonrpc::error::Web3Error};
 
 lazy_static! {
@@ -23,7 +23,7 @@ pub const HIGH_GAS_PRICE: Uint256 = u256!(321000000000);
 
 pub const TEST_GAS_LIMIT: Uint256 = u256!(200_000);
 
-pub const ETH_NODE: &str = "http://localhost:8545/ext/bc/C/rpc";
+pub const ETH_NODE: &str = "http://localhost:8545";
 
 #[tokio::main]
 pub async fn main() {
@@ -39,21 +39,21 @@ pub async fn main() {
     //let rpc_host = "127.0.0.1:8545";
     //let rpc_url = "http://localhost:8545";
     // avalanchego
-    let rpc_host = "127.0.0.1:8545";
+    //let rpc_host = "127.0.0.1:8545";
     let rpc_url = ETH_NODE;
     // go-opera (Fantom)
     //let rpc_host = "127.0.0.1:18545";
     //let rpc_url = "http://localhost:18545";
     // wait for the server to be ready
-    for _ in 0..120 {
+    /*for _ in 0..120 {
         if TcpStream::connect(rpc_host).await.is_ok() {
             break
         }
         sleep(Duration::from_millis(500)).await
     }
-    //let rpc = HttpClient::new(rpc_url);
+    let rpc = web30::jsonrpc::client::HttpClient::new(rpc_url);
 
-    /*let methods = [
+    let methods = [
         // commented out are mentioned in `Web30` but are not used in the bridge
         //"accounts",
         //"chainId",
@@ -70,13 +70,13 @@ pub async fn main() {
         //"blockNumber",
     ];
     for eth_method in methods.into_iter().map(|s| "eth_".to_owned() + s) {
-        let res: Result<SyncingStatus, Web3Error> = rpc
+        let res: Result<web30::types::SyncingStatus, Web3Error> = rpc
             .request_method(&eth_method, Vec::<String>::new(), Duration::from_secs(10))
             .await;
         println!("{} => {:?}", eth_method, res);
     }
 
-    let res: Result<SyncingStatus, Web3Error> = rpc
+    let res: Result<web30::types::SyncingStatus, Web3Error> = rpc
         .request_method("eth_syncing", Vec::<String>::new(), Duration::from_secs(10))
         .await;
     dbg!(res);*/
@@ -142,7 +142,7 @@ pub async fn main() {
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
     //sleep(Duration::from_secs(20)).await;
-    //web3.wait_for_next_block(Duration::from_secs(120))
+    // web3.wait_for_next_block(Duration::from_secs(120))
     //    .await
     //    .unwrap();
 
@@ -154,7 +154,7 @@ pub async fn main() {
         .await
     );
 
-    let (_private_keys, public_keys) = random_keys(500);
+    let (_private_keys, public_keys) = random_keys(1);
     let send_amount = u256!(1);
     send_eth_bulk(send_amount, &public_keys, &web3).await;
     web3.wait_for_next_block(Duration::from_secs(30))

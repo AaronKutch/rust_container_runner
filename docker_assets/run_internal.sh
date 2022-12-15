@@ -3,40 +3,54 @@
 # so that database related folders are not spawning in the scripts folder
 pushd /
 
-#geth --identity "GravityTestnet" --nodiscover \
-#    --networkid 15 \
-#    --mine \
-#    --http \
-#    --http.addr="0.0.0.0" \
-#    --http.vhosts="*" \
-#    --http.corsdomain="*" \
-#    --miner.threads=1 \
-#    --nousb \
-#    --verbosity=5 \
-#    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE &> /rust_container_runner/docker_assets/geth.log &
+geth --identity "GravityTestnet" \
+    --nodiscover \
+    --networkid 15 init /rust_container_runner/docker_assets/ETHGenesis.json
+
+geth --identity "GravityTestnet" --nodiscover \
+   --networkid 15 \
+   --mine \
+   --http \
+   --http.addr="0.0.0.0" \
+   --http.vhosts="*" \
+   --http.corsdomain="*" \
+   --miner.threads=1 \
+   --nousb \
+   --verbosity=5 \
+   --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE &> /rust_container_runner/docker_assets/geth.log &
+
+echo "waiting for geth to come online"
+until $(curl --output /dev/null --fail --silent --header "content-type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' http://localhost:8545); do
+    printf '.'
+    sleep 1
+done
+echo "waiting for geth to sync"
+until [ "$(curl -s --header "content-type: application/json" --data '{"id":1,"jsonrpc":"2.0","method":"eth_syncing","params":[]}' http://localhost:8545)" == '{"jsonrpc":"2.0","id":1,"result":false}' ]; do
+    sleep 1
+done
 
 # the setup for local testing. The genesis file prefunds
 # 0xb1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7
 # and 0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b
-avalanchego \
-    --genesis="/rust_container_runner/docker_assets/ETHGenesis.json" \
-    --chain-config-dir="/rust_container_runner/docker_assets/avalanchego_configs" \
-    --network-id=15 \
-    --build-dir="/avalanchego/build/" \
-    --public-ip=127.0.0.1 \
-    --http-port=8545 \
-    --db-type=memdb \
-    --staking-enabled=false &> /rust_container_runner/docker_assets/avalanchego.log &
+# avalanchego \
+#     --genesis="/rust_container_runner/docker_assets/ETHGenesis.json" \
+#     --chain-config-dir="/rust_container_runner/docker_assets/avalanchego_configs" \
+#     --network-id=15 \
+#     --build-dir="/avalanchego/build/" \
+#     --public-ip=127.0.0.1 \
+#     --http-port=8545 \
+#     --db-type=memdb \
+#     --staking-enabled=false &> /rust_container_runner/docker_assets/avalanchego.log &
 
-echo "waiting for avalanche to come online"
-until $(curl --output /dev/null --fail --silent --header "content-type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' http://localhost:8545/ext/bc/C/rpc); do
-    printf '.'
-    sleep 1
-done
-echo "waiting for avalanche to sync"
-until [ "$(curl -s --header "content-type: application/json" --data '{"id":1,"jsonrpc":"2.0","method":"eth_syncing","params":[]}' http://localhost:8545/ext/bc/C/rpc)" == '{"jsonrpc":"2.0","id":1,"result":false}' ]; do
-    sleep 1
-done
+# echo "waiting for avalanche to come online"
+# until $(curl --output /dev/null --fail --silent --header "content-type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' http://localhost:8545/ext/bc/C/rpc); do
+#     printf '.'
+#     sleep 1
+# done
+# echo "waiting for avalanche to sync"
+# until [ "$(curl -s --header "content-type: application/json" --data '{"id":1,"jsonrpc":"2.0","method":"eth_syncing","params":[]}' http://localhost:8545/ext/bc/C/rpc)" == '{"jsonrpc":"2.0","id":1,"result":false}' ]; do
+#     sleep 1
+# done
 
 # sleep 10
 
