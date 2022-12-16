@@ -97,6 +97,7 @@ pub async fn main() {
             let pub_key: EthAddress = private_key.to_address();
             let net_version = web3.net_version().await.unwrap();
             let mut nonce = web3.eth_get_transaction_count(pub_key).await.unwrap();
+            dbg!(nonce);
             let mut transactions = Vec::new();
             let gas_price: Uint256 = web3.eth_gas_price().await.unwrap();
             let double = gas_price.checked_mul(u256!(2)).unwrap();
@@ -115,14 +116,15 @@ pub async fn main() {
                 nonce = nonce.checked_add(u256!(1)).unwrap();
             }
             for tx in transactions {
-                web3.eth_send_raw_transaction(tx.to_bytes().unwrap())
-                    .await
-                    .unwrap();
+                let txid = web3.eth_send_raw_transaction(tx.to_bytes().unwrap())
+                    .await;
+                wait_for_txids(vec![txid], web3);
             }
         }
 
         // repeatedly send to unrelated addresses
         let web3 = Web3::new(ETH_NODE, Duration::from_secs(30));
+        tokio::time::sleep(Duration::from_secs(0)).await;
         for i in 0u64.. {
             send_eth_bulk2(
                 u256!(1),
@@ -135,13 +137,13 @@ pub async fn main() {
                 &web3,
             )
             .await;
-            tokio::time::sleep(Duration::from_secs(4)).await;
+            tokio::time::sleep(Duration::from_millis(1000)).await;
         }
     });
 
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
-    //sleep(Duration::from_secs(20)).await;
+    //sleep(Duration::from_secs(100)).await;
     //web3.wait_for_next_block(Duration::from_secs(120))
     //    .await
     //    .unwrap();
@@ -166,7 +168,7 @@ pub async fn main() {
             // wait for an extra 30 seconds for the block stimulator to cause more blocks,
             // show that the transaction totally failed and the bug is not just with
             // unerrored txids being returned
-            sleep(Duration::from_secs(180)).await;
+            sleep(Duration::from_secs(5)).await;
             dbg!(web3.eth_get_balance(*key).await.unwrap(), send_amount);
             println!(
                 "transaction did not actually happen for key {} ({})",
