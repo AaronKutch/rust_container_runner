@@ -155,9 +155,12 @@ pub async fn main() {
         .await
     );
 
-    let (_private_keys, public_keys) = random_keys(500);
+    let (_private_keys, public_keys) = random_keys(1000);
     let send_amount = u256!(1);
     send_eth_bulk(send_amount, &public_keys, &web3).await;
+    // note: this may take a while for the initial DAG to generate, this isn't as
+    // noticeable in the bridge because of other startup things happening in
+    // parallel
     web3.wait_for_next_block(Duration::from_secs(300))
         .await
         .unwrap();
