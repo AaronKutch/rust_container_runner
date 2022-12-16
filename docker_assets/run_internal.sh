@@ -8,22 +8,20 @@ geth --identity "GravityTestnet" \
     --networkid 15 \
     init /rust_container_runner/docker_assets/ETHGenesis.json
 
-geth --identity "GravityTestnet" \
-   --nodiscover \
-   --networkid 15 \
-   --mine \
-   --http \
-   --http.addr="0.0.0.0" \
-   --http.vhosts="*" \
-   --http.corsdomain="*" \
-   --miner.threads=1 \
-   --nousb \
-   --verbosity=5 \
-   --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE &> /rust_container_runner/docker_assets/geth.log &
+geth --identity "GravityTestnet" --nodiscover \
+    --networkid 15 \
+    --mine \
+    --http \
+    --http.addr="0.0.0.0" \
+    --http.vhosts="*" \
+    --http.corsdomain="*" \
+    --miner.threads=1 \
+    --nousb \
+    --verbosity=5 \
+    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE &> /rust_container_runner/docker_assets/geth.log &
 
 echo "waiting for geth to come online"
 until $(curl --output /dev/null --fail --silent --header "content-type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' http://localhost:8545); do
-    printf '.'
     sleep 1
 done
 echo "waiting for geth to sync"

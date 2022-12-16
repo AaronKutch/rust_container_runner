@@ -82,81 +82,83 @@ pub async fn main() {
     dbg!(res);*/
 
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
-    web3.wait_for_next_block(Duration::from_secs(300))
-        .await
-        .unwrap();
+    // web3.wait_for_next_block(Duration::from_secs(300))
+    //     .await
+    //     .unwrap();
 
     // if `should_deploy_contracts()` this needs to be running beforehand,
     // because some chains have really strong quiescence
-    tokio::spawn(async move {
-        use std::str::FromStr;
-        // we need a duplicate `send_eth_bulk` that uses a different
-        // private key and does not wait on transactions, otherwise we
-        // conflict with the main runner's nonces and calculations
-        async fn send_eth_bulk2(amount: Uint256, destinations: &[EthAddress], web3: &Web3) {
-            let private_key: EthPrivateKey =
-                "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b"
-                    .to_owned()
-                    .parse()
-                    .unwrap();
-            let pub_key: EthAddress = private_key.to_address();
-            let net_version = web3.net_version().await.unwrap();
-            let mut nonce = web3.eth_get_transaction_count(pub_key).await.unwrap();
-            let mut transactions = Vec::new();
-            let gas_price: Uint256 = web3.eth_gas_price().await.unwrap();
-            let double = gas_price.checked_mul(u256!(2)).unwrap();
-            for address in destinations {
-                let t = Transaction {
-                    to: *address,
-                    nonce,
-                    gas_price: double,
-                    gas_limit: TEST_GAS_LIMIT,
-                    value: amount,
-                    data: Vec::new(),
-                    signature: None,
-                };
-                let t = t.sign(&private_key, Some(net_version));
-                transactions.push(t);
-                nonce = nonce.checked_add(u256!(1)).unwrap();
-            }
-            for tx in transactions {
-                web3.eth_send_raw_transaction(tx.to_bytes().unwrap())
-                    .await
-                    .unwrap();
-            }
-        }
+    // tokio::spawn(async move {
+    //     use std::str::FromStr;
+    //     // we need a duplicate `send_eth_bulk` that uses a different
+    //     // private key and does not wait on transactions, otherwise we
+    //     // conflict with the main runner's nonces and calculations
+    //     async fn send_eth_bulk2(amount: Uint256, destinations: &[EthAddress],
+    // web3: &Web3) {         let private_key: EthPrivateKey =
+    //
+    // "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b"
+    //                 .to_owned()
+    //                 .parse()
+    //                 .unwrap();
+    //         let pub_key: EthAddress = private_key.to_address();
+    //         let net_version = web3.net_version().await.unwrap();
+    //         let mut nonce =
+    // web3.eth_get_transaction_count(pub_key).await.unwrap();         let mut
+    // transactions = Vec::new();         let gas_price: Uint256 =
+    // web3.eth_gas_price().await.unwrap();         let double =
+    // gas_price.checked_mul(u256!(2)).unwrap();         for address in
+    // destinations {             let t = Transaction {
+    //                 to: *address,
+    //                 nonce,
+    //                 gas_price: double,
+    //                 gas_limit: TEST_GAS_LIMIT,
+    //                 value: amount,
+    //                 data: Vec::new(),
+    //                 signature: None,
+    //             };
+    //             let t = t.sign(&private_key, Some(net_version));
+    //             transactions.push(t);
+    //             nonce = nonce.checked_add(u256!(1)).unwrap();
+    //         }
+    //         for tx in transactions {
+    //             web3.eth_send_raw_transaction(tx.to_bytes().unwrap())
+    //                 .await
+    //                 .unwrap();
+    //         }
+    //     }
 
-        // repeatedly send to unrelated addresses
-        let web3 = Web3::new(ETH_NODE, Duration::from_secs(30));
-        for i in 0u64.. {
-            send_eth_bulk2(
-                u256!(1),
-                // some chain had a problem with identical transactions being made, alternate
-                &if (i & 1) == 0 {
-                    [EthAddress::from_str("0x798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap()]
-                } else {
-                    [EthAddress::from_str("0xFf64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB").unwrap()]
-                },
-                &web3,
-            )
-            .await;
-            tokio::time::sleep(Duration::from_secs(4)).await;
-        }
-    });
-
+    //     // repeatedly send to unrelated addresses
+    //     let web3 = Web3::new(ETH_NODE, Duration::from_secs(30));
+    //     for i in 0u64.. {
+    //         send_eth_bulk2(
+    //             u256!(1),
+    //             // some chain had a problem with identical transactions being
+    // made, alternate             &if (i & 1) == 0 {
+    //
+    // [EthAddress::from_str("0x798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap()]
+    //             } else {
+    //
+    // [EthAddress::from_str("0xFf64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB").unwrap()]
+    //             },
+    //             &web3,
+    //         )
+    //         .await;
+    //         tokio::time::sleep(Duration::from_secs(4)).await;
+    //     }
+    // });
 
     // starting address amount
-    /*dbg!(
+    dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
         )
         .await
     );
 
-    let (_private_keys, public_keys) = random_keys(1);
+    let (_private_keys, public_keys) = random_keys(500);
     let send_amount = u256!(1);
     send_eth_bulk(send_amount, &public_keys, &web3).await;
-    web3.wait_for_next_block(Duration::from_secs(30))
+    web3.wait_for_next_block(Duration::from_secs(300))
         .await
         .unwrap();
     for (i, key) in public_keys.iter().enumerate() {
@@ -183,7 +185,6 @@ pub async fn main() {
     }
 
     println!("{} txns failed", tot_failed);
-    */
 
     // ending address amount
     /*dbg!(
