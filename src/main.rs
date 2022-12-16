@@ -1,9 +1,10 @@
 #![allow(unused_must_use)]
-use std::{env, str::FromStr, time::Duration};
+use std::{env, path::PathBuf, str::FromStr, time::Duration};
 
 use clarity::{
     address::Address as EthAddress, u256, PrivateKey as EthPrivateKey, Transaction, Uint256,
 };
+use ethers_solc::ProjectPathsConfig;
 use futures::future::join_all;
 use lazy_static::lazy_static;
 use tokio::time::sleep;
@@ -148,7 +149,7 @@ pub async fn main() {
     // });
 
     // starting address amount
-    dbg!(
+    /*dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
         )
@@ -187,50 +188,9 @@ pub async fn main() {
         }
     }
 
-    println!("{} txns failed", tot_failed);
+    println!("{} txns failed", tot_failed);*/
 
-    // ending address amount
     /*dbg!(
-        web3.eth_get_balance(
-            EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
-        )
-        .await
-    );
-
-    dbg!(
-        web3.eth_get_balance(
-            EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
-        )
-        .await
-    );
-    dbg!("sending to eth");
-    let (_private_keys, public_keys) = random_keys(1);
-    dbg!(
-        web3.eth_get_balance(
-            public_keys[0]
-        )
-        .await
-    );
-    send_eth_bulk(
-        u256!(1337),
-        &public_keys,
-        &web3,
-    )
-    .await;
-    dbg!("done sending to eth");
-    web3.wait_for_next_block(Duration::from_secs(120))
-        .await
-        .unwrap();
-    dbg!("done waiting for next block");
-    dbg!(
-        web3.eth_get_balance(
-            public_keys[0]
-        )
-        .await
-    );*/
-
-    /*
-    dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
         )
@@ -250,7 +210,7 @@ pub async fn main() {
     )
     .await;
     dbg!("done sending to eth");
-    web3.wait_for_next_block(Duration::from_secs(120))
+    web3.wait_for_next_block(Duration::from_secs(200))
         .await
         .unwrap();
     dbg!("done waiting for next block");
@@ -259,8 +219,41 @@ pub async fn main() {
             EthAddress::from_str("0xb3d82b1367d362de99ab59a658165aff520cbd4d").unwrap()
         )
         .await
-    );
-    */
+    );*/
+
+    // test contract deploy
+    let contracts_root = PathBuf::from("/rust_container_runner/docker_assets/contracts/");
+    let contract_path = ProjectPathsConfig::builder().build_with_root(contracts_root);
+    let project = ethers_solc::Project::builder()
+        .paths(contract_path)
+        .set_auto_detect(true)
+        .no_artifacts()
+        .build()
+        .unwrap();
+    dbg!(&project.artifacts);
+
+    /*
+    let contract = project.find("gravity").context("Contract not found").unwrap();
+     */
+
+    /*deploy_contracts().await;
+
+    let contracts = parse_contract_addresses();
+    // the address of the deployed Gravity contract
+    let gravity_address = contracts.gravity_contract;
+
+    pub const TRANSACTION_BATCH_EXECUTED_EVENT_SIG: &str =
+    "TransactionBatchExecutedEvent(uint256,address,uint256)";
+
+    let logs = web3
+    .check_for_events(
+        u256!(0),
+        None,
+        vec![gravity_address],
+        vec![TRANSACTION_BATCH_EXECUTED_EVENT_SIG],
+    )
+    .await.unwrap();
+    dbg!(logs);*/
 }
 
 async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {
