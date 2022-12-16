@@ -164,7 +164,7 @@ pub async fn main() {
     web3.wait_for_next_block(Duration::from_secs(300))
         .await
         .unwrap();
-    for (i, key) in public_keys.iter().enumerate() {
+    for (i, key) in public_keys.iter().enumerate().rev() {
         if web3.eth_get_balance(*key).await.unwrap() != send_amount {
             dbg!();
             // wait for an extra 30 seconds for the block stimulator to cause more blocks,
