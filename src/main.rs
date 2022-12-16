@@ -154,19 +154,19 @@ pub async fn main() {
         .await
     );
 
-    let (_private_keys, public_keys) = random_keys(500);
+    let (_private_keys, public_keys) = random_keys(300);
     let send_amount = u256!(1);
     send_eth_bulk(send_amount, &public_keys, &web3).await;
-    web3.wait_for_next_block(Duration::from_secs(30))
+    web3.wait_for_next_block(Duration::from_secs(300))
         .await
         .unwrap();
-    for (i, key) in public_keys.iter().enumerate() {
+    for (i, key) in public_keys.iter().enumerate().rev() {
         if web3.eth_get_balance(*key).await.unwrap() != send_amount {
             dbg!();
             // wait for an extra 30 seconds for the block stimulator to cause more blocks,
             // show that the transaction totally failed and the bug is not just with
             // unerrored txids being returned
-            sleep(Duration::from_secs(30)).await;
+            sleep(Duration::from_secs(180)).await;
             dbg!(web3.eth_get_balance(*key).await.unwrap(), send_amount);
             println!(
                 "transaction did not actually happen for key {} ({})",

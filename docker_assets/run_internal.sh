@@ -26,6 +26,7 @@ avalanchego \
     --public-ip=127.0.0.1 \
     --http-port=8545 \
     --db-type=memdb \
+    --log-display-level=debug \
     --staking-enabled=false &> /rust_container_runner/docker_assets/avalanchego.log &
 
 echo "waiting for avalanche to come online"
