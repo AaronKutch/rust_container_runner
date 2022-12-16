@@ -5,9 +5,11 @@ pushd /
 
 geth --identity "GravityTestnet" \
     --nodiscover \
-    --networkid 15 init /rust_container_runner/docker_assets/ETHGenesis.json
+    --networkid 15 \
+    init /rust_container_runner/docker_assets/ETHGenesis.json
 
-geth --identity "GravityTestnet" --nodiscover \
+geth --identity "GravityTestnet" \
+   --nodiscover \
    --networkid 15 \
    --mine \
    --http \

@@ -81,6 +81,11 @@ pub async fn main() {
         .await;
     dbg!(res);*/
 
+    let web3 = Web3::new(rpc_url, Duration::from_secs(60));
+    web3.wait_for_next_block(Duration::from_secs(300))
+        .await
+        .unwrap();
+
     // if `should_deploy_contracts()` this needs to be running beforehand,
     // because some chains have really strong quiescence
     tokio::spawn(async move {
@@ -139,15 +144,9 @@ pub async fn main() {
         }
     });
 
-    let web3 = Web3::new(rpc_url, Duration::from_secs(60));
-
-    //sleep(Duration::from_secs(20)).await;
-    // web3.wait_for_next_block(Duration::from_secs(120))
-    //    .await
-    //    .unwrap();
 
     // starting address amount
-    dbg!(
+    /*dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
         )
@@ -184,16 +183,50 @@ pub async fn main() {
     }
 
     println!("{} txns failed", tot_failed);
+    */
 
     // ending address amount
-    dbg!(
+    /*dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
         )
         .await
     );
 
-    /*dbg!(
+    dbg!(
+        web3.eth_get_balance(
+            EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
+        )
+        .await
+    );
+    dbg!("sending to eth");
+    let (_private_keys, public_keys) = random_keys(1);
+    dbg!(
+        web3.eth_get_balance(
+            public_keys[0]
+        )
+        .await
+    );
+    send_eth_bulk(
+        u256!(1337),
+        &public_keys,
+        &web3,
+    )
+    .await;
+    dbg!("done sending to eth");
+    web3.wait_for_next_block(Duration::from_secs(120))
+        .await
+        .unwrap();
+    dbg!("done waiting for next block");
+    dbg!(
+        web3.eth_get_balance(
+            public_keys[0]
+        )
+        .await
+    );*/
+
+    /*
+    dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
         )
@@ -218,14 +251,12 @@ pub async fn main() {
         .unwrap();
     dbg!("done waiting for next block");
     dbg!(
-
-    );
-    dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xb3d82b1367d362de99ab59a658165aff520cbd4d").unwrap()
         )
         .await
-    );*/
+    );
+    */
 }
 
 async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {

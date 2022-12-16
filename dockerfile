@@ -4,7 +4,7 @@ RUN dnf install -y git make cmake gcc gcc-c++ which iproute iputils procps-ng vi
 # only required for deployment script
 RUN npm install -g ts-node && npm install -g typescript
 
-ADD https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.10-bb74230f.tar.gz /geth/
+ADD https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.26-e5eb32ac.tar.gz /geth/
 RUN cd /geth && tar -xvf * && mv /geth/**/geth /usr/bin/geth
 
 #COPY --from=avaplatform/avalanchego:v1.9.4 /avalanchego/ /avalanchego/
