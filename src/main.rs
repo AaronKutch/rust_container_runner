@@ -1,14 +1,18 @@
 #![allow(unused_must_use)]
-use std::{env, path::PathBuf, str::FromStr, time::Duration};
+use std::{env, path::PathBuf, time::Duration};
 
 use clarity::{
-    address::Address as EthAddress, u256, PrivateKey as EthPrivateKey, Transaction, Uint256,
+    abi::Token, address::Address as EthAddress, u256, PrivateKey as EthPrivateKey, Transaction,
+    Uint256,
+};
+use ethers::{
+    prelude::{ContractFactory, SignerMiddleware},
+    signers::LocalWallet,
 };
 use ethers_solc::ProjectPathsConfig;
 use futures::future::join_all;
 use lazy_static::lazy_static;
-use tokio::time::sleep;
-use web30::{client::Web3, jsonrpc::error::Web3Error};
+use web30::{client::Web3, jsonrpc::error::Web3Error, types::SendTxOption};
 
 lazy_static! {
     // this key is the private key for the public key defined in tests/assets/ETHGenesis.json
@@ -82,7 +86,7 @@ pub async fn main() {
         .await;
     dbg!(res);*/
 
-    let web3 = Web3::new(rpc_url, Duration::from_secs(60));
+    //let web3 = Web3::new(rpc_url, Duration::from_secs(60));
     // web3.wait_for_next_block(Duration::from_secs(300))
     //     .await
     //     .unwrap();
@@ -222,7 +226,10 @@ pub async fn main() {
     );*/
 
     // test contract deploy
-    let contracts_root = PathBuf::from("/rust_container_runner/docker_assets/contracts/");
+    let root = "/rust_container_runner/docker_assets/solidity/";
+    //let root = "/home/aaron/rust_container_runner/docker_assets/solidity/";
+    let sol_location = root.to_owned() + "src/gravity.sol";
+    let contracts_root = PathBuf::from(root);
     let contract_path = ProjectPathsConfig::builder().build_with_root(contracts_root);
     let project = ethers_solc::Project::builder()
         .paths(contract_path)
@@ -230,30 +237,93 @@ pub async fn main() {
         .no_artifacts()
         .build()
         .unwrap();
-    dbg!(&project.artifacts);
+    dbg!();
+    // may be downloading a binary, be sure to run with `--release`
+    let output = project.compile().unwrap();
+    dbg!();
+    if output.has_compiler_errors() {
+        println!("compilation failed with:\n{:?}", output.output().errors);
+        panic!();
+    }
+    let artifact = output
+        .compiled_artifacts()
+        .0
+        .clone()
+        .remove(&sol_location)
+        .unwrap()
+        .remove("gravity")
+        .unwrap()[0]
+        .clone()
+        .artifact;
+    let abi = artifact.abi.as_ref().unwrap().clone();
+    let bytecode = artifact.bytecode.as_ref().unwrap().clone();
+
+    let provider =
+        ethers::providers::Provider::<ethers::providers::Http>::try_from("http://localhost:8545")
+            .unwrap();
+    // no 0x prefix
+    let wallet: LocalWallet = "b1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7"
+        .to_owned()
+        .parse()
+        .unwrap();
+    let wallet = ethers::signers::Signer::with_chain_id(wallet, 15u64);
+    let client = SignerMiddleware::new(provider.clone(), wallet).into();
+    let factory = ContractFactory::new(
+        abi.clone().into(),
+        bytecode.object.into_bytes().unwrap(),
+        client,
+    );
+    let constructor_args = ();
+    let deployer = factory.deploy(constructor_args).unwrap();
+    let deployed_contract = deployer.clone().legacy().send().await.unwrap();
+
+    let gravity_address = deployed_contract.address().0.into();
 
     /*
-    let contract = project.find("gravity").context("Contract not found").unwrap();
+      function submitBatch(
+        uint256 _batchNonce,
+        address _tokenContract
+    ) public {
+        state_lastEventNonce = state_lastEventNonce + 1;
+        emit TransactionBatchExecutedEvent(_batchNonce, _tokenContract, state_lastEventNonce);
+    }
      */
 
-    /*deploy_contracts().await;
-
-    let contracts = parse_contract_addresses();
-    // the address of the deployed Gravity contract
-    let gravity_address = contracts.gravity_contract;
-
     pub const TRANSACTION_BATCH_EXECUTED_EVENT_SIG: &str =
-    "TransactionBatchExecutedEvent(uint256,address,uint256)";
+        "TransactionBatchExecutedEvent(uint256,address,uint256)";
+
+    let web3 = Web3::new(rpc_url, Duration::from_secs(60));
+
+    let tx_hash = web3
+        .send_transaction(
+            gravity_address,
+            clarity::abi::encode_call("submitBatch(uint256,address)", &[
+                Token::Uint(u256!(0)),
+                Token::Address(*MINER_ADDRESS),
+            ])
+            .unwrap(),
+            u256!(0),
+            *MINER_ADDRESS,
+            &MINER_PRIVATE_KEY,
+            vec![SendTxOption::GasPriceMultiplier(1.5)],
+        )
+        .await
+        .unwrap();
+
+    web3.wait_for_transaction(tx_hash, Duration::from_secs(30), None)
+        .await
+        .unwrap();
+    web3.wait_for_next_block(Duration::from_secs(30))
+        .await
+        .unwrap();
 
     let logs = web3
-    .check_for_events(
-        u256!(0),
-        None,
-        vec![gravity_address],
-        vec![TRANSACTION_BATCH_EXECUTED_EVENT_SIG],
-    )
-    .await.unwrap();
-    dbg!(logs);*/
+        .check_for_events(u256!(0), None, vec![gravity_address], vec![
+            TRANSACTION_BATCH_EXECUTED_EVENT_SIG,
+        ])
+        .await
+        .unwrap();
+    dbg!(logs);
 }
 
 async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {

@@ -3,6 +3,8 @@ RUN dnf install -y git make cmake gcc gcc-c++ which iproute iputils procps-ng vi
 
 # only required for deployment script
 RUN npm install -g ts-node && npm install -g typescript
+# for ethers-rs based runtime
+RUN npm install -g solc
 
 ADD https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.26-e5eb32ac.tar.gz /geth/
 RUN cd /geth && tar -xvf * && mv /geth/**/geth /usr/bin/geth

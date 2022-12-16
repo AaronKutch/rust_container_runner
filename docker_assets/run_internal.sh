@@ -3,9 +3,6 @@
 # so that database related folders are not spawning in the scripts folder
 pushd /
 
-RUST_LOG="TRACE" RUST_BACKTRACE=full /rust_container_runner/docker_assets/internal_runner
-sleep 10000
-
 geth --identity "GravityTestnet" \
     --nodiscover \
     --networkid 15 \
