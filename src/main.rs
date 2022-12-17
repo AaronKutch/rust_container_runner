@@ -26,10 +26,10 @@ lazy_static! {
 }
 pub const HIGH_GAS_PRICE: Uint256 = u256!(321000000000);
 
-pub const TEST_GAS_LIMIT: Uint256 = u256!(200_000);
+pub const TEST_GAS_LIMIT: Uint256 = u256!(2_000_000);
 
-pub const ETH_NODE: &str = "http://localhost:8545";
-pub const CHAIN_ID: u64 = 15;
+pub const ETH_NODE: &str = "http://proxy:9090/solana";
+pub const CHAIN_ID: u64 = 111;
 pub const WALLET: &str = "b1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7";
 
 #[tokio::main]
@@ -276,10 +276,10 @@ pub async fn main() {
     let deployed_contract = deployer.clone().legacy().send().await.unwrap();
 
     let gravity_address: EthAddress = deployed_contract.address().0.into();
-    dbg!(&gravity_address);
-    let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"
-        .parse()
-        .unwrap();
+    //dbg!(&gravity_address);
+    //let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"
+    //    .parse()
+    //    .unwrap();
     dbg!(&gravity_address);
 
     /*
@@ -314,7 +314,7 @@ pub async fn main() {
         .send_transaction(
             gravity_address,
             clarity::abi::encode_call("submitBatch(uint256,address)", &[
-                Token::Uint(u256!(1337)),
+                Token::Uint(u256!(0)),
                 Token::Address(*MINER_ADDRESS),
             ])
             .unwrap(),
