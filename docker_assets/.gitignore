@@ -2,5 +2,6 @@
 !.gitignore
 !ETHGenesis.json
 !run_internal.sh
+!run_internal2.sh
 !avalanchego_configs
 !solidity/
