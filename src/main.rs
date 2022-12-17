@@ -29,6 +29,8 @@ pub const HIGH_GAS_PRICE: Uint256 = u256!(321000000000);
 pub const TEST_GAS_LIMIT: Uint256 = u256!(200_000);
 
 pub const ETH_NODE: &str = "http://localhost:8545";
+pub const CHAIN_ID: u64 = 15;
+pub const WALLET: &str = "b1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7";
 
 #[tokio::main]
 pub async fn main() {
@@ -225,7 +227,6 @@ pub async fn main() {
         .await
     );*/
 
-    /*
     // test contract deploy
     let root = "/rust_container_runner/docker_assets/solidity/";
     //let root = "/home/aaron/rust_container_runner/docker_assets/solidity/";
@@ -260,14 +261,10 @@ pub async fn main() {
     let bytecode = artifact.bytecode.as_ref().unwrap().clone();
 
     let provider =
-        ethers::providers::Provider::<ethers::providers::Http>::try_from("http://localhost:8545")
-            .unwrap();
+        ethers::providers::Provider::<ethers::providers::Http>::try_from(ETH_NODE).unwrap();
     // no 0x prefix
-    let wallet: LocalWallet = "b1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7"
-        .to_owned()
-        .parse()
-        .unwrap();
-    let wallet = ethers::signers::Signer::with_chain_id(wallet, 15u64);
+    let wallet: LocalWallet = WALLET.to_owned().parse().unwrap();
+    let wallet = ethers::signers::Signer::with_chain_id(wallet, CHAIN_ID);
     let client = SignerMiddleware::new(provider.clone(), wallet).into();
     let factory = ContractFactory::new(
         abi.clone().into(),
@@ -278,22 +275,22 @@ pub async fn main() {
     let deployer = factory.deploy(constructor_args).unwrap();
     let deployed_contract = deployer.clone().legacy().send().await.unwrap();
 
-    let gravity_address = deployed_contract.address().0.into();
-
+    let gravity_address: EthAddress = deployed_contract.address().0.into();
     dbg!(&gravity_address);
-    */
-
-    let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609".parse().unwrap();
+    let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"
+        .parse()
+        .unwrap();
+    dbg!(&gravity_address);
 
     /*
-    {"id":18,"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf8a8018495905cc382b5b9940412c7c846bb6b7dc462cf6b453f76d8440b260980b84453de0c530000000000000000000000000000000000000000000000000000000000000000000000000000000000000000bf660843528035a5a4921534e156a27e64b231fe42a0e5621e7fade81c2582f1e42519c38bc30323f4dea37a6b2661cbb0f41907223da05f01870860902fc48c03a2f59b7cdaa2c2fa97d152f7f5764d84ea49e4a05a5c"]}
+        {"id":18,"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf8a8018495905cc382b5b9940412c7c846bb6b7dc462cf6b453f76d8440b260980b84453de0c530000000000000000000000000000000000000000000000000000000000000000000000000000000000000000bf660843528035a5a4921534e156a27e64b231fe42a0e5621e7fade81c2582f1e42519c38bc30323f4dea37a6b2661cbb0f41907223da05f01870860902fc48c03a2f59b7cdaa2c2fa97d152f7f5764d84ea49e4a05a5c"]}
 
-    // 0x0412C7c846bb6b7DC462CF6B453f76D8440b2609
-Response { id: Number(18), jsonrpc: "2.0", data: Success { result: 58510516575086095322022559644036446469990870932504118152198894874437914036255 } }
-{"id":19,"jsonrpc":"2.0","method":"eth_syncing","params":[]}
-Response { id: Number(19), jsonrpc: "2.0", data: Success { result: NotSyncing(false) } }
-{"id":20,"jsonrpc":"2.0","method":"eth_getTransactionByHash","params":["0x815bc75f9a21b17da8d6d6984ed7c7a6a8ada33e36e5ec2f42c2829cfac9881f"]}
-     */
+        // 0x0412C7c846bb6b7DC462CF6B453f76D8440b2609
+    Response { id: Number(18), jsonrpc: "2.0", data: Success { result: 58510516575086095322022559644036446469990870932504118152198894874437914036255 } }
+    {"id":19,"jsonrpc":"2.0","method":"eth_syncing","params":[]}
+    Response { id: Number(19), jsonrpc: "2.0", data: Success { result: NotSyncing(false) } }
+    {"id":20,"jsonrpc":"2.0","method":"eth_getTransactionByHash","params":["0x815bc75f9a21b17da8d6d6984ed7c7a6a8ada33e36e5ec2f42c2829cfac9881f"]}
+         */
 
     /*
       function submitBatch(
@@ -313,7 +310,7 @@ Response { id: Number(19), jsonrpc: "2.0", data: Success { result: NotSyncing(fa
     /*
     INFO [12-16|23:03:37.130] Submitted contract creation              hash=0xb8a6afcbd48f723974d1977a7dc1d6ca489b12f4246d603a8ba7ef9f8b43465a from=0xBf660843528035a5A4921534E156a27e64B231fE nonce=0 contract=0x0412C7c846bb6b7DC462CF6B453f76D8440b2609 value=0
      */
-    /*let tx_hash = web3
+    let tx_hash = web3
         .send_transaction(
             gravity_address,
             clarity::abi::encode_call("submitBatch(uint256,address)", &[
@@ -331,7 +328,7 @@ Response { id: Number(19), jsonrpc: "2.0", data: Success { result: NotSyncing(fa
 
     web3.wait_for_transaction(tx_hash, Duration::from_secs(30), None)
         .await
-        .unwrap();*/
+        .unwrap();
 
     /*
     {"id":3,"jsonrpc":"2.0","method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0x2cd","address":["0x09260B44D8763F456BCF62c47D6BbB46C8C71204"],"topics":[["0x02c7e81975f8edb86e2a0c038b7b86a49c744236abf0f6177ff5afc6986ab708"]]}]}
@@ -344,7 +341,6 @@ Response { id: Number(19), jsonrpc: "2.0", data: Success { result: NotSyncing(fa
 
 
     */
-
 
     dbg!();
     let logs = web3

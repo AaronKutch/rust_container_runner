@@ -13,5 +13,6 @@ lazy_static = "1"
 rand = "0.8"
 tokio = { version = "1.17", features = ["macros", "rt-multi-thread"] }
 u64_array_bigints = { version = "0.3", default-features = false, features = ["serde_support"] }
+# only change is downgrading a `_finalized_`
 web30 = { path = "../web30", features = ["debug_requests", "debug_responses"] }
 #web30 = { git = "https://github.com/onomyprotocol/web30.git", rev = "909950b43faa014ebfdced5074b59179e35fb65a", features = ["debug_requests", "debug_responses"] }
