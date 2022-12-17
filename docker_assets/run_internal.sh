@@ -110,5 +110,5 @@ done
 #    --http.api="eth,debug,net,admin,web3,personal,txpool,ftm,dag" \
 #    --datadir="/opera_datadir" &> /rust_container_runner/docker_assets/opera.log &
 
-RUST_LOG="TRACE" RUST_BACKTRACE=full /rust_container_runner/docker_assets/internal_runner > host_eth_rpc.log &
+RUST_LOG="TRACE" RUST_BACKTRACE=full /rust_container_runner/docker_assets/internal_runner > /rust_container_runner/docker_assets/host_eth_rpc.log &
 sleep 10000

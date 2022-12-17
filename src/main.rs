@@ -314,7 +314,7 @@ pub async fn main() {
         .send_transaction(
             gravity_address,
             clarity::abi::encode_call("submitBatch(uint256,address)", &[
-                Token::Uint(u256!(0)),
+                Token::Uint(u256!(1337)),
                 Token::Address(*MINER_ADDRESS),
             ])
             .unwrap(),
