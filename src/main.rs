@@ -235,7 +235,7 @@ pub async fn main() {
     );*/
 
     // test contract deploy
-    /*let root = "/rust_container_runner/docker_assets/solidity/";
+    let root = "/rust_container_runner/docker_assets/solidity/";
     //let root = "/home/aaron/rust_container_runner/docker_assets/solidity/";
     let sol_location = root.to_owned() + "src/gravity.sol";
     let contracts_root = PathBuf::from(root);
@@ -283,7 +283,7 @@ pub async fn main() {
     let deployed_contract = deployer.clone().legacy().send().await.unwrap();
 
     let gravity_address: EthAddress = deployed_contract.address().0.into();
-    dbg!(&gravity_address);*/
+    dbg!(&gravity_address);
     let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"
         .parse()
         .unwrap();
@@ -338,7 +338,7 @@ pub async fn main() {
     .await
     .unwrap();*/
 
-    let mut rng = Xoshiro128StarStar::seed_from_u64(0);
+    let rng = Xoshiro128StarStar::seed_from_u64(0);
     let rand_string: String = rand::Rng::sample_iter(rng, &rand::distributions::Alphanumeric)
         .take(5000)
         .map(char::from)
@@ -363,7 +363,6 @@ pub async fn main() {
             &MINER_PRIVATE_KEY,
             vec![
                 SendTxOption::GasPriceMultiplier(2.0),
-                SendTxOption::GasLimit(u256!(7000000)),
             ],
         )
         .await
