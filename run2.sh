@@ -1,8 +1,6 @@
 #!/bin/bash
 set -eux
 
-RUNNING_CONTAINER_ID=$1
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DOCKERFOLDER=$DIR/docker_assets
 REPOFOLDER=$DIR
@@ -34,4 +32,4 @@ cp $REPOFOLDER/target/$RCR_TARGET/release/rust_container_runner $DOCKERFOLDER/in
 RUN_ARGS="/bin/bash /rust_container_runner/docker_assets/run_internal2.sh"
 
 # Run in existing instance
-docker exec -it $RUNNING_CONTAINER_ID $RUN_ARGS
+docker exec -it rust_test_runner_container $RUN_ARGS

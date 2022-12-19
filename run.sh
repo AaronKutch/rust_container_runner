@@ -42,18 +42,10 @@ PATH=$PATH:$HOME/.cargo/bin CROSS_COMPILE=$CROSS_COMPILE cargo build --release -
 # because the binaries are put in different directories depending on $RCR_TARGET, copy them to a common place
 cp $REPOFOLDER/target/$RCR_TARGET/release/rust_container_runner $DOCKERFOLDER/internal_runner
 
-export NEON_EVM_COMMIT="efaf1cca168284333adde179faf3dfc993c1ffc4"
-export PROXY_REVISION="e93af21dbf9596085a54495dfb53f5e166406299"
-export FAUCET_COMMIT="v0.12.0"
-export USE_LOCAL_ARTIFACTS=${USE_LOCAL_ARTIFACTS:-0}
-export VOLUME_ARGS
-export RUN_ARGS
-
-#docker-compose -f docker-compose.yml down
 
 # Remove existing container instance
 set +e
-#docker rm -f rust_test_runner_container
+docker rm -f rust_test_runner_container
 set -e
 
 set +e
@@ -61,13 +53,7 @@ docker network rm net
 set -e
 docker network create net
 
-docker-compose -f docker-compose.yml build
-
 docker build -t rust_test_runner_container $PLATFORM_CMD .
-
-set +e
-docker-compose -f docker-compose.yml up -d --force-recreate
-set -e
 
 # Run new test container instance
 docker run --name rust_test_runner_container --network net --hostname test $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS
