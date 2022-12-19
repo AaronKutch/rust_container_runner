@@ -19,3 +19,4 @@ u64_array_bigints = { version = "0.3", default-features = false, features = ["se
 # only change is downgrading a `_finalized_`
 web30 = { path = "../web30", features = ["debug_requests", "debug_responses"] }
 #web30 = { git = "https://github.com/onomyprotocol/web30.git", rev = "909950b43faa014ebfdced5074b59179e35fb65a", features = ["debug_requests", "debug_responses"] }
+rand_xoshiro = { version = "0.6", default-features = false }

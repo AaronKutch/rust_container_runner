@@ -12,6 +12,10 @@ use ethers::{
 };
 use futures::future::join_all;
 use lazy_static::lazy_static;
+use rand_xoshiro::{
+    rand_core::{RngCore, SeedableRng},
+    Xoshiro128StarStar,
+};
 use web30::{client::Web3, jsonrpc::error::Web3Error, types::SendTxOption};
 
 lazy_static! {
@@ -95,64 +99,67 @@ pub async fn main() {
 
     // if `should_deploy_contracts()` this needs to be running beforehand,
     // because some chains have really strong quiescence
-    // tokio::spawn(async move {
-    //     use std::str::FromStr;
-    //     // we need a duplicate `send_eth_bulk` that uses a different
-    //     // private key and does not wait on transactions, otherwise we
-    //     // conflict with the main runner's nonces and calculations
-    //     async fn send_eth_bulk2(amount: Uint256, destinations: &[EthAddress],
-    // web3: &Web3) {         let private_key: EthPrivateKey =
-    //
-    // "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b"
-    //                 .to_owned()
-    //                 .parse()
-    //                 .unwrap();
-    //         let pub_key: EthAddress = private_key.to_address();
-    //         let net_version = web3.net_version().await.unwrap();
-    //         let mut nonce =
-    // web3.eth_get_transaction_count(pub_key).await.unwrap();         let mut
-    // transactions = Vec::new();         let gas_price: Uint256 =
-    // web3.eth_gas_price().await.unwrap();         let double =
-    // gas_price.checked_mul(u256!(2)).unwrap();         for address in
-    // destinations {             let t = Transaction {
-    //                 to: *address,
-    //                 nonce,
-    //                 gas_price: double,
-    //                 gas_limit: TEST_GAS_LIMIT,
-    //                 value: amount,
-    //                 data: Vec::new(),
-    //                 signature: None,
-    //             };
-    //             let t = t.sign(&private_key, Some(net_version));
-    //             transactions.push(t);
-    //             nonce = nonce.checked_add(u256!(1)).unwrap();
-    //         }
-    //         for tx in transactions {
-    //             web3.eth_send_raw_transaction(tx.to_bytes().unwrap())
-    //                 .await
-    //                 .unwrap();
-    //         }
-    //     }
+    tokio::spawn(async move {
+        use std::str::FromStr;
+        // we need a duplicate `send_eth_bulk` that uses a different
+        // private key and does not wait on transactions, otherwise we
+        // conflict with the main runner's nonces and calculations
+        async fn send_eth_bulk2(amount: Uint256, destinations: &[EthAddress], web3: &Web3) {
+            let private_key: EthPrivateKey =
+                "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b"
+                    .to_owned()
+                    .parse()
+                    .unwrap();
+            let pub_key: EthAddress = private_key.to_address();
+            let net_version = web3.net_version().await.unwrap();
+            let mut nonce = web3.eth_get_transaction_count(pub_key).await.unwrap();
+            let mut transactions = Vec::new();
+            let gas_price: Uint256 = web3.eth_gas_price().await.unwrap();
+            let double = gas_price.checked_mul(u256!(2)).unwrap();
+            for address in destinations {
+                let t = Transaction {
+                    to: *address,
+                    nonce,
+                    gas_price: double,
+                    gas_limit: TEST_GAS_LIMIT,
+                    value: amount,
+                    data: Vec::new(),
+                    signature: None,
+                };
+                let t = t.sign(&private_key, Some(net_version));
+                transactions.push(t);
+                nonce = nonce.checked_add(u256!(1)).unwrap();
+            }
+            for tx in transactions {
+                web3.eth_send_raw_transaction(tx.to_bytes().unwrap())
+                    .await
+                    .unwrap();
+            }
+        }
 
-    //     // repeatedly send to unrelated addresses
-    //     let web3 = Web3::new(ETH_NODE, Duration::from_secs(30));
-    //     for i in 0u64.. {
-    //         send_eth_bulk2(
-    //             u256!(1),
-    //             // some chain had a problem with identical transactions being
-    // made, alternate             &if (i & 1) == 0 {
-    //
-    // [EthAddress::from_str("0x798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap()]
-    //             } else {
-    //
-    // [EthAddress::from_str("0xFf64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB").unwrap()]
-    //             },
-    //             &web3,
-    //         )
-    //         .await;
-    //         tokio::time::sleep(Duration::from_secs(4)).await;
-    //     }
-    // });
+        // repeatedly send to unrelated addresses
+        let web3 = Web3::new(ETH_NODE, Duration::from_secs(30));
+        for i in 0u64.. {
+            send_eth_bulk2(
+                u256!(1),
+                // some chain had a problem with identical transactions being made, alternate
+                    & if (i & 1) == 0 {
+                        [
+                            EthAddress::from_str("0x798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")
+                                .unwrap(),
+                        ]
+                    } else {
+                        [
+                            EthAddress::from_str("0xFf64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")
+                                .unwrap(),
+                        ]
+                    },
+                &web3,
+            )
+            .await;
+            tokio::time::sleep(Duration::from_secs(4)).await;
+        }
+    });
 
     // starting address amount
     /*dbg!(
@@ -228,7 +235,7 @@ pub async fn main() {
     );*/
 
     // test contract deploy
-    let root = "/rust_container_runner/docker_assets/solidity/";
+    /*let root = "/rust_container_runner/docker_assets/solidity/";
     //let root = "/home/aaron/rust_container_runner/docker_assets/solidity/";
     let sol_location = root.to_owned() + "src/gravity.sol";
     let contracts_root = PathBuf::from(root);
@@ -276,10 +283,10 @@ pub async fn main() {
     let deployed_contract = deployer.clone().legacy().send().await.unwrap();
 
     let gravity_address: EthAddress = deployed_contract.address().0.into();
-    dbg!(&gravity_address);
-    // let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"
-    //     .parse()
-    //     .unwrap();
+    dbg!(&gravity_address);*/
+    let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"
+        .parse()
+        .unwrap();
     dbg!(&gravity_address);
 
     /*
@@ -304,18 +311,51 @@ pub async fn main() {
 
     pub const TRANSACTION_BATCH_EXECUTED_EVENT_SIG: &str =
         "TransactionBatchExecutedEvent(uint256,address,uint256)";
+    pub const ERC20_DEPLOYED_EVENT_SIG: &str =
+        "ERC20DeployedEvent(string,string,string,uint8,uint256)";
 
-    let web3 = Web3::new(rpc_url, Duration::from_secs(60));
+    let web30 = Web3::new(rpc_url, Duration::from_secs(60));
 
     /*
     INFO [12-16|23:03:37.130] Submitted contract creation              hash=0xb8a6afcbd48f723974d1977a7dc1d6ca489b12f4246d603a8ba7ef9f8b43465a from=0xBf660843528035a5A4921534E156a27e64B231fE nonce=0 contract=0x0412C7c846bb6b7DC462CF6B453f76D8440b2609 value=0
      */
-    let tx_hash = web3
+    /*let tx_hash = web3
+    .send_transaction(
+        gravity_address,
+        clarity::abi::encode_call("submitBatch(uint256,address)", &[
+            Token::Uint(u256!(1)),
+            Token::Address(*MINER_ADDRESS),
+        ])
+        .unwrap(),
+        u256!(0),
+        *MINER_ADDRESS,
+        &MINER_PRIVATE_KEY,
+        vec![
+            SendTxOption::GasPriceMultiplier(2.0),
+            SendTxOption::GasLimit(u256!(200_000)),
+        ],
+    )
+    .await
+    .unwrap();*/
+
+    let mut rng = Xoshiro128StarStar::seed_from_u64(0);
+    let rand_string: String = rand::Rng::sample_iter(rng, &rand::distributions::Alphanumeric)
+        .take(5000)
+        .map(char::from)
+        .collect();
+    let rand_string = rand_string.as_bytes().to_vec();
+    let starting_event_nonce = get_event_nonce_safe(gravity_address, &web30, *MINER_ADDRESS)
+        .await
+        .unwrap();
+
+    let tx_hash = web30
         .send_transaction(
             gravity_address,
-            clarity::abi::encode_call("submitBatch(uint256,address)", &[
-                Token::Uint(u256!(1)),
-                Token::Address(*MINER_ADDRESS),
+            clarity::abi::encode_call("deployERC20(string,string,string,uint8)", &[
+                Token::UnboundedBytes(rand_string.clone()),
+                Token::UnboundedBytes(rand_string.clone()),
+                Token::UnboundedBytes(rand_string),
+                0u64.into(),
             ])
             .unwrap(),
             u256!(0),
@@ -323,13 +363,28 @@ pub async fn main() {
             &MINER_PRIVATE_KEY,
             vec![
                 SendTxOption::GasPriceMultiplier(2.0),
-                SendTxOption::GasLimit(u256!(200_000)),
+                SendTxOption::GasLimit(u256!(7000000)),
             ],
         )
         .await
         .unwrap();
 
-    web3.wait_for_transaction(tx_hash, Duration::from_secs(30), None)
+    web30
+        .wait_for_transaction(tx_hash, Duration::from_secs(30), None)
+        .await
+        .unwrap();
+
+    let ending_event_nonce = get_event_nonce_safe(gravity_address, &web30, *MINER_ADDRESS)
+        .await
+        .unwrap();
+    dbg!(starting_event_nonce, ending_event_nonce);
+    web30
+        .wait_for_next_block(Duration::from_secs(30))
+        .await
+        .unwrap();
+
+    web30
+        .wait_for_transaction(tx_hash, Duration::from_secs(30), None)
         .await
         .unwrap();
 
@@ -346,13 +401,13 @@ pub async fn main() {
     */
 
     dbg!();
-    let logs = web3
+    /*let logs = web30
         .check_for_events(u256!(0), None, vec![gravity_address], vec![
-            TRANSACTION_BATCH_EXECUTED_EVENT_SIG,
+            ERC20_DEPLOYED_EVENT_SIG,
         ])
         .await
         .unwrap();
-    dbg!(logs);
+    dbg!(logs);*/
 }
 
 async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {
@@ -412,4 +467,53 @@ pub fn random_keys(len: usize) -> (Vec<EthPrivateKey>, Vec<EthAddress>) {
         res.1.push(eth_address);
     }
     res
+}
+
+/// utility function for bulk checking erc20 balances, used to provide
+/// a single future that contains the assert as well s the request
+pub async fn get_event_nonce_safe(
+    gravity_contract_address: EthAddress,
+    web3: &Web3,
+    caller_address: EthAddress,
+) -> Result<u64, Web3Error> {
+    tokio::time::timeout(Duration::from_secs(30), async {
+        loop {
+            let new_balance = get_event_nonce(gravity_contract_address, caller_address, web3).await;
+            if let Err(ref e) = new_balance {
+                if e.to_string().contains("maxFeePerGas") {
+                    continue
+                }
+            }
+            return new_balance
+        }
+    })
+    .await
+    .expect("Can't get event nonce withing timeout")
+}
+
+/// Gets the latest transaction batch nonce
+pub async fn get_event_nonce(
+    gravity_contract_address: EthAddress,
+    caller_address: EthAddress,
+    web3: &Web3,
+) -> Result<u64, Web3Error> {
+    let payload = clarity::abi::encode_call("state_lastEventNonce()", &[]).unwrap();
+    let val = web3
+        .simulate_transaction(
+            gravity_contract_address,
+            u256!(0),
+            payload,
+            caller_address,
+            None,
+        )
+        .await?;
+    // the go represents all nonces as u64, there's no
+    // reason they should ever overflow without a user
+    // submitting millions or tens of millions of dollars
+    // worth of transactions. But we properly check and
+    // handle that case here.
+    let real_num = Uint256::from_bytes_be(&val).unwrap();
+    Ok(real_num
+        .try_resize_to_u64()
+        .expect("EventNonce nonce overflow! Bridge Halt!"))
 }
