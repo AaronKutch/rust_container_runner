@@ -8,8 +8,8 @@ use clarity::{
 use ethers::{
     prelude::{ContractFactory, SignerMiddleware},
     signers::LocalWallet,
+    solc::{Project, ProjectPathsConfig},
 };
-use ethers_solc::ProjectPathsConfig;
 use futures::future::join_all;
 use lazy_static::lazy_static;
 use web30::{client::Web3, jsonrpc::error::Web3Error, types::SendTxOption};
@@ -228,12 +228,12 @@ pub async fn main() {
     );*/
 
     // test contract deploy
-    let root = "/rust_container_runner/docker_assets/solidity/";
+    /*let root = "/rust_container_runner/docker_assets/solidity/";
     //let root = "/home/aaron/rust_container_runner/docker_assets/solidity/";
     let sol_location = root.to_owned() + "src/gravity.sol";
     let contracts_root = PathBuf::from(root);
     let contract_path = ProjectPathsConfig::builder().build_with_root(contracts_root);
-    let project = ethers_solc::Project::builder()
+    let project = Project::builder()
         .paths(contract_path)
         .set_auto_detect(true)
         .no_artifacts()
@@ -277,10 +277,10 @@ pub async fn main() {
 
     let gravity_address: EthAddress = deployed_contract.address().0.into();
     //dbg!(&gravity_address);
-    //let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"
-    //    .parse()
-    //    .unwrap();
-    dbg!(&gravity_address);
+    dbg!(&gravity_address);*/
+    let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"
+        .parse()
+        .unwrap();
 
     /*
         {"id":18,"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf8a8018495905cc382b5b9940412c7c846bb6b7dc462cf6b453f76d8440b260980b84453de0c530000000000000000000000000000000000000000000000000000000000000000000000000000000000000000bf660843528035a5a4921534e156a27e64b231fe42a0e5621e7fade81c2582f1e42519c38bc30323f4dea37a6b2661cbb0f41907223da05f01870860902fc48c03a2f59b7cdaa2c2fa97d152f7f5764d84ea49e4a05a5c"]}
@@ -314,14 +314,17 @@ pub async fn main() {
         .send_transaction(
             gravity_address,
             clarity::abi::encode_call("submitBatch(uint256,address)", &[
-                Token::Uint(u256!(0)),
+                Token::Uint(u256!(1)),
                 Token::Address(*MINER_ADDRESS),
             ])
             .unwrap(),
             u256!(0),
             *MINER_ADDRESS,
             &MINER_PRIVATE_KEY,
-            vec![SendTxOption::GasPriceMultiplier(1.5)],
+            vec![
+                SendTxOption::GasPriceMultiplier(2.0),
+                SendTxOption::GasLimit(u256!(200_000)),
+            ],
         )
         .await
         .unwrap();
