@@ -23,7 +23,11 @@ pub const HIGH_GAS_PRICE: Uint256 = u256!(321000000000);
 
 pub const TEST_GAS_LIMIT: Uint256 = u256!(200_000);
 
-pub const ETH_NODE: &str = "http://localhost:8545";
+// eth
+//pub const ETH_NODE: &str = "http://localhost:8545";
+
+// avalanche
+pub const ETH_NODE: &str = "http://localhost:8545/ext/bc/C/rpc";
 
 #[tokio::main]
 pub async fn main() {
