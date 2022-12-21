@@ -23,7 +23,7 @@ pub const HIGH_GAS_PRICE: Uint256 = u256!(321000000000);
 
 pub const TEST_GAS_LIMIT: Uint256 = u256!(200_000);
 
-pub const ETH_NODE: &str = "http://localhost:8545/ext/bc/C/rpc";
+pub const ETH_NODE: &str = "http://localhost:8545";
 
 #[tokio::main]
 pub async fn main() {
@@ -234,6 +234,7 @@ async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {
     let mut wait_for_txid = Vec::new();
     for txid in txids {
         if let Ok(txid) = txid {
+            // uses eth_getTransactionReceipt
             let wait = web3.wait_for_transaction(txid, Duration::from_secs(30), None);
             wait_for_txid.push(wait);
         } else {

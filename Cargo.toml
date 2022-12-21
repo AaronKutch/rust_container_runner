@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-web30 = { git = "https://github.com/onomyprotocol/web30.git", rev = "909950b43faa014ebfdced5074b59179e35fb65a", features = ["debug_responses"]}
+web30 = { git = "https://github.com/AaronKutch/web30.git", rev = "49cd28956153caf39ba0209d6a8c93a1ec035202", features = ["debug_errors"]}
 #web30 = { path = "../web30" }
 tokio = { version = "1.17", features = ["macros", "rt-multi-thread"] }
 clarity = { git = "https://github.com/onomyprotocol/clarity.git", rev = "3e875b608a2d9302c8b23dd40dc8705901db230c" }
