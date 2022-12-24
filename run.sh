@@ -49,11 +49,11 @@ export USE_LOCAL_ARTIFACTS=${USE_LOCAL_ARTIFACTS:-0}
 export VOLUME_ARGS
 export RUN_ARGS
 
-#docker-compose -f docker-compose.yml down
 
 # Remove existing container instance
 set +e
-#docker rm -f rust_test_runner_container
+docker-compose -f docker-compose.yml down
+docker rm -f rust_test_runner_container
 set -e
 
 set +e
@@ -61,12 +61,12 @@ docker network rm net
 set -e
 docker network create net
 
-docker-compose -f docker-compose.yml build
+#docker-compose -f docker-compose.yml build
 
 docker build -t rust_test_runner_container $PLATFORM_CMD .
 
 set +e
-docker-compose -f docker-compose.yml up -d --force-recreate
+#docker-compose -f docker-compose.yml up -d --force-recreate
 set -e
 
 # Run new test container instance
