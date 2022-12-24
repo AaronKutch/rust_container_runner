@@ -5,16 +5,14 @@ edition = "2021"
 publish = false
 
 [dependencies]
+log = "0.4"
+env_logger = "0.9"
 clarity = { git = "https://github.com/onomyprotocol/clarity.git", rev = "3e875b608a2d9302c8b23dd40dc8705901db230c" }
-#ethers = { version = "1.0", features = ["legacy"] }
 # needed to remove a case where eth_estimateGas was called with 3 arguments
-ethers = { path = "../ethers-rs", features = ["legacy", "solc-full"] }
-#ethers-solc = { version = "1.0", features = ["svm-solc"] }
-#ethers-solc = { path = "../ethers-rs/ethers-solc", features = ["svm-solc"] }
+ethers = { git = "https://github.com/AaronKutch/ethers-rs", rev = "703a48472094359a48376407f0df7d396d8cfc6b", features = ["legacy", "solc-full"] }
 futures = "0.3"
 lazy_static = "1"
 rand = "0.8"
 tokio = { version = "1.17", features = ["macros", "rt-multi-thread"] }
 u64_array_bigints = { version = "0.3", default-features = false, features = ["serde_support"] }
-
 web30 = { git = "https://github.com/AaronKutch/web30.git", rev = "aa7a2dd1dcee81324a5f5da0290f6f0d50191d96", features = ["warn_on_rpc_error", "record_json_rpc"]}

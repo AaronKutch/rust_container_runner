@@ -2,8 +2,7 @@
 use std::{env, path::PathBuf, time::Duration};
 
 use clarity::{
-    abi::Token, address::Address as EthAddress, u256, PrivateKey as EthPrivateKey, Transaction,
-    Uint256,
+    address::Address as EthAddress, u256, PrivateKey as EthPrivateKey, Transaction, Uint256,
 };
 use ethers::{
     prelude::{ContractFactory, SignerMiddleware},
@@ -12,7 +11,8 @@ use ethers::{
 };
 use futures::future::join_all;
 use lazy_static::lazy_static;
-use web30::{client::Web3, jsonrpc::error::Web3Error, types::SendTxOption};
+use log::{warn, info};
+use web30::{client::Web3, jsonrpc::error::Web3Error};
 
 lazy_static! {
     // this key is the private key for the public key defined in tests/assets/ETHGenesis.json
@@ -28,33 +28,22 @@ pub const HIGH_GAS_PRICE: Uint256 = u256!(321000000000);
 
 pub const TEST_GAS_LIMIT: Uint256 = u256!(2_000_000);
 
-// pub const ETH_NODE: &str = "http://proxy:9090/solana";
-// pub const CHAIN_ID: u64 = 111;
+pub const ETH_NODE: &str = "http://proxy:9090/solana";
+pub const CHAIN_ID: u64 = 111;
 
-pub const ETH_NODE: &str = "http://localhost:8545";
-pub const CHAIN_ID: u64 = 15;
+// pub const ETH_NODE: &str = "http://localhost:8545";
+// pub const CHAIN_ID: u64 = 15;
 
 pub const WALLET: &str = "b1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7";
 
 #[tokio::main]
 pub async fn main() {
-    //dbg!(u256!(50000000000000000000000000).checked_sub(
-    //u256!(39999999993700000000000000)).unwrap());
-    //panic!();
-    //300000000000
-    //6300000000000000
+    env_logger::init();
+    info!("starting");
 
     dbg!(*MINER_PRIVATE_KEY);
     dbg!(*MINER_ADDRESS);
-    // geth
-    //let rpc_host = "127.0.0.1:8545";
-    //let rpc_url = "http://localhost:8545";
-    // avalanchego
-    //let rpc_host = "127.0.0.1:8545";
     let rpc_url = ETH_NODE;
-    // go-opera (Fantom)
-    //let rpc_host = "127.0.0.1:18545";
-    //let rpc_url = "http://localhost:18545";
     // wait for the server to be ready
     /*for _ in 0..120 {
         if TcpStream::connect(rpc_host).await.is_ok() {
@@ -65,7 +54,6 @@ pub async fn main() {
     let rpc = web30::jsonrpc::client::HttpClient::new(rpc_url);
 
     let methods = [
-        // commented out are mentioned in `Web30` but are not used in the bridge
         //"accounts",
         //"chainId",
         //"newFilter",
@@ -96,67 +84,6 @@ pub async fn main() {
     // web3.wait_for_next_block(Duration::from_secs(300))
     //     .await
     //     .unwrap();
-
-    // if `should_deploy_contracts()` this needs to be running beforehand,
-    // because some chains have really strong quiescence
-    // tokio::spawn(async move {
-    //     use std::str::FromStr;
-    //     // we need a duplicate `send_eth_bulk` that uses a different
-    //     // private key and does not wait on transactions, otherwise we
-    //     // conflict with the main runner's nonces and calculations
-    //     async fn send_eth_bulk2(amount: Uint256, destinations: &[EthAddress],
-    // web3: &Web3) {         let private_key: EthPrivateKey =
-    //
-    // "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b"
-    //                 .to_owned()
-    //                 .parse()
-    //                 .unwrap();
-    //         let pub_key: EthAddress = private_key.to_address();
-    //         let net_version = web3.net_version().await.unwrap();
-    //         let mut nonce =
-    // web3.eth_get_transaction_count(pub_key).await.unwrap();         let mut
-    // transactions = Vec::new();         let gas_price: Uint256 =
-    // web3.eth_gas_price().await.unwrap();         let double =
-    // gas_price.checked_mul(u256!(2)).unwrap();         for address in
-    // destinations {             let t = Transaction {
-    //                 to: *address,
-    //                 nonce,
-    //                 gas_price: double,
-    //                 gas_limit: TEST_GAS_LIMIT,
-    //                 value: amount,
-    //                 data: Vec::new(),
-    //                 signature: None,
-    //             };
-    //             let t = t.sign(&private_key, Some(net_version));
-    //             transactions.push(t);
-    //             nonce = nonce.checked_add(u256!(1)).unwrap();
-    //         }
-    //         for tx in transactions {
-    //             web3.eth_send_raw_transaction(tx.to_bytes().unwrap())
-    //                 .await
-    //                 .unwrap();
-    //         }
-    //     }
-
-    //     // repeatedly send to unrelated addresses
-    //     let web3 = Web3::new(ETH_NODE, Duration::from_secs(30));
-    //     for i in 0u64.. {
-    //         send_eth_bulk2(
-    //             u256!(1),
-    //             // some chain had a problem with identical transactions being
-    // made, alternate             &if (i & 1) == 0 {
-    //
-    // [EthAddress::from_str("0x798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap()]
-    //             } else {
-    //
-    // [EthAddress::from_str("0xFf64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB").unwrap()]
-    //             },
-    //             &web3,
-    //         )
-    //         .await;
-    //         tokio::time::sleep(Duration::from_secs(4)).await;
-    //     }
-    // });
 
     // starting address amount
     /*dbg!(
@@ -280,11 +207,73 @@ pub async fn main() {
     let deployed_contract = deployer.clone().legacy().send().await.unwrap();
 
     let gravity_address: EthAddress = deployed_contract.address().0.into();
-    //dbg!(&gravity_address);
     dbg!(&gravity_address);
     // let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"
     //     .parse()
     //     .unwrap();
+
+    // block stimulator workaround
+    tokio::spawn(async move {
+        use std::str::FromStr;
+        // we need a duplicate `send_eth_bulk` that uses a different
+        // private key and does not wait on transactions, otherwise we
+        // conflict with the main runner's nonces and calculations
+        async fn send_eth_bulk2(amount: Uint256, destinations: &[EthAddress], web3: &Web3) {
+            let private_key: EthPrivateKey =
+                "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b"
+                    .to_owned()
+                    .parse()
+                    .unwrap();
+            let pub_key: EthAddress = private_key.to_address();
+            let net_version = web3.net_version().await.unwrap();
+            let mut nonce = web3.eth_get_transaction_count(pub_key).await.unwrap();
+            let mut transactions = Vec::new();
+            let gas_price: Uint256 = web3.eth_gas_price().await.unwrap();
+            let double = gas_price.checked_mul(u256!(2)).unwrap();
+            for address in destinations {
+                let t = Transaction {
+                    to: *address,
+                    nonce,
+                    gas_price: double,
+                    gas_limit: TEST_GAS_LIMIT,
+                    value: amount,
+                    data: Vec::new(),
+                    signature: None,
+                };
+                let t = t.sign(&private_key, Some(net_version));
+                transactions.push(t);
+                nonce = nonce.checked_add(u256!(1)).unwrap();
+            }
+            for tx in transactions {
+                // The problem that this is trying to solve, is that if we try and wait
+                // for the transaction in this thread, there are race conditions such
+                // that we can softlock. There are also problems with fluctuating gas
+                // prices and long block production times from batch tests that cause
+                // replacement errors. What we do is simply ignore the transaction ids
+                // and just send a warning if there is an error.
+                if let Err(e) = web3.eth_send_raw_transaction(tx.to_bytes().unwrap()).await {
+                    warn!("Block stimulator encountered transaction error: {}", e);
+                }
+            }
+        }
+
+        // repeatedly send to unrelated addresses
+        let web3 = Web3::new(ETH_NODE, Duration::from_secs(30));
+        for i in 0u64.. {
+            send_eth_bulk2(
+                u256!(1),
+                // alternate to reduce replacement errors
+                &if (i & 1) == 0 {
+                    [EthAddress::from_str("0x798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap()]
+                } else {
+                    [EthAddress::from_str("0xFf64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB").unwrap()]
+                },
+                &web3,
+            )
+            .await;
+            tokio::time::sleep(Duration::from_secs(4)).await;
+        }
+    });
 
     pub const TRANSACTION_BATCH_EXECUTED_EVENT_SIG: &str =
         "TransactionBatchExecutedEvent(uint256,address,uint256)";
@@ -302,7 +291,7 @@ pub async fn main() {
 
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
-    let tx_hash = web3
+    /*let tx_hash = web3
         .send_transaction(
             gravity_address,
             clarity::abi::encode_call("submitBatch(uint256,address)", &[
@@ -323,12 +312,12 @@ pub async fn main() {
 
     web3.wait_for_transaction(tx_hash, Duration::from_secs(30), None)
         .await
-        .unwrap();
+        .unwrap();*/
 
     /*
-
     # curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0xffff","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"],"topics":[["0x02c7e81975f8edb86e2a0c038b7b86a49c744236abf0f6177ff5afc6986ab708"]]}],"id":1,"jsonrpc":"2.0"}' http://localhost:8545
 
+    # curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0xffff","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"],"topics":[["0x9e9794dbf94b0a0aa31a480f5b38550eda7f89115ac8fbf4953fa4dd219900c9"]]}],"id":1,"jsonrpc":"2.0"}' http://localhost:8545
         */
 
     dbg!();
@@ -349,13 +338,13 @@ pub async fn main() {
         .truncate(true)
         .write(true)
         .create(true)
-        .open("/rust_container_runner/docker_assets/requests.txt")
+        .open("/rust_container_runner/docker_assets/requests_avax.txt")
         .unwrap();
     let mut file1 = std::fs::OpenOptions::new()
         .truncate(true)
         .write(true)
         .create(true)
-        .open("/rust_container_runner/docker_assets/responses.txt")
+        .open("/rust_container_runner/docker_assets/responses_avax.txt")
         .unwrap();
     use std::fmt::Write;
     let requests = web30::JSON_RPC_REQUESTS.lock().unwrap();
@@ -373,7 +362,7 @@ pub async fn main() {
     std::io::Write::write_all(&mut file1, responses.as_bytes()).unwrap();
     drop(file1);
 
-    println!("done!");
+    info!("done!");
 }
 
 async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {
@@ -421,7 +410,7 @@ pub async fn send_eth_bulk(amount: Uint256, destinations: &[EthAddress], web3: &
     wait_for_txids(txids, web3).await;
 }
 
-pub fn random_keys(len: usize) -> (Vec<EthPrivateKey>, Vec<EthAddress>) {
+/*pub fn random_keys(len: usize) -> (Vec<EthPrivateKey>, Vec<EthAddress>) {
     let mut res = (vec![], vec![]);
     for _ in 0..len {
         let mut rng = rand::thread_rng();
@@ -433,4 +422,4 @@ pub fn random_keys(len: usize) -> (Vec<EthPrivateKey>, Vec<EthAddress>) {
         res.1.push(eth_address);
     }
     res
-}
+}*/
