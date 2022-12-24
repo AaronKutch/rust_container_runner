@@ -61,12 +61,12 @@ docker network rm net
 set -e
 docker network create net
 
-docker-compose -f docker-compose.yml build
+# docker-compose -f docker-compose.yml build
 
 docker build -t rust_test_runner_container $PLATFORM_CMD .
 
 set +e
-docker-compose -f docker-compose.yml up -d --force-recreate
+# docker-compose -f docker-compose.yml up -d --force-recreate
 set -e
 
 # Run new test container instance
