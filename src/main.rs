@@ -2,7 +2,8 @@
 use std::{env, path::PathBuf, time::Duration};
 
 use clarity::{
-    address::Address as EthAddress, u256, PrivateKey as EthPrivateKey, Transaction, Uint256,
+    abi::Token, address::Address as EthAddress, u256, PrivateKey as EthPrivateKey, Transaction,
+    Uint256,
 };
 use ethers::{
     prelude::{ContractFactory, SignerMiddleware},
@@ -11,8 +12,8 @@ use ethers::{
 };
 use futures::future::join_all;
 use lazy_static::lazy_static;
-use log::{warn, info};
-use web30::{client::Web3, jsonrpc::error::Web3Error};
+use log::{info, warn};
+use web30::{client::Web3, jsonrpc::error::Web3Error, types::SendTxOption};
 
 lazy_static! {
     // this key is the private key for the public key defined in tests/assets/ETHGenesis.json
@@ -38,7 +39,7 @@ pub const WALLET: &str = "b1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8
 
 #[tokio::main]
 pub async fn main() {
-    env_logger::init();
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
     info!("starting");
 
     dbg!(*MINER_PRIVATE_KEY);
@@ -291,7 +292,7 @@ pub async fn main() {
 
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
-    /*let tx_hash = web3
+    let tx_hash = web3
         .send_transaction(
             gravity_address,
             clarity::abi::encode_call("submitBatch(uint256,address)", &[
@@ -312,7 +313,7 @@ pub async fn main() {
 
     web3.wait_for_transaction(tx_hash, Duration::from_secs(30), None)
         .await
-        .unwrap();*/
+        .unwrap();
 
     /*
     # curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0xffff","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"],"topics":[["0x02c7e81975f8edb86e2a0c038b7b86a49c744236abf0f6177ff5afc6986ab708"]]}],"id":1,"jsonrpc":"2.0"}' http://localhost:8545
