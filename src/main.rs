@@ -228,7 +228,7 @@ pub async fn main() {
     );*/
 
     // test contract deploy
-    /*let root = "/rust_container_runner/docker_assets/solidity/";
+    let root = "/rust_container_runner/docker_assets/solidity/";
     //let root = "/home/aaron/rust_container_runner/docker_assets/solidity/";
     let sol_location = root.to_owned() + "src/gravity.sol";
     let contracts_root = PathBuf::from(root);
@@ -277,10 +277,10 @@ pub async fn main() {
 
     let gravity_address: EthAddress = deployed_contract.address().0.into();
     //dbg!(&gravity_address);
-    dbg!(&gravity_address);*/
-    let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"
-        .parse()
-        .unwrap();
+    dbg!(&gravity_address);
+    // let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"
+    //     .parse()
+    //     .unwrap();
 
     /*
         {"id":18,"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xf8a8018495905cc382b5b9940412c7c846bb6b7dc462cf6b453f76d8440b260980b84453de0c530000000000000000000000000000000000000000000000000000000000000000000000000000000000000000bf660843528035a5a4921534e156a27e64b231fe42a0e5621e7fade81c2582f1e42519c38bc30323f4dea37a6b2661cbb0f41907223da05f01870860902fc48c03a2f59b7cdaa2c2fa97d152f7f5764d84ea49e4a05a5c"]}
@@ -302,8 +302,20 @@ pub async fn main() {
     }
      */
 
-    pub const TRANSACTION_BATCH_EXECUTED_EVENT_SIG: &str =
-        "TransactionBatchExecutedEvent(uint256,address,uint256)";
+     pub const TRANSACTION_BATCH_EXECUTED_EVENT_SIG: &str =
+     "TransactionBatchExecutedEvent(uint256,address,uint256)";
+ 
+ pub const SENT_TO_COSMOS_EVENT_SIG: &str =
+     "SendToCosmosEvent(address,address,string,uint256,uint256)";
+ 
+ pub const ERC20_DEPLOYED_EVENT_SIG: &str =
+     "ERC20DeployedEvent(string,address,string,string,uint8,uint256)";
+ 
+ pub const LOGIC_CALL_EVENT_SIG: &str = "LogicCallEvent(bytes32,uint256,bytes,uint256)";
+ 
+ pub const VALSET_UPDATED_EVENT_SIG: &str =
+     "ValsetUpdatedEvent(uint256,uint256,uint256,address,address[],uint256[])";
+ 
 
     let web3 = Web3::new(rpc_url, Duration::from_secs(60));
 
@@ -340,19 +352,64 @@ pub async fn main() {
 
     curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0x2cd","address":["0x09260B44D8763F456BCF62c47D6BbB46C8C71204"],"topics":[["0x02c7e81975f8edb86e2a0c038b7b86a49c744236abf0f6177ff5afc6986ab708"]]}],"id":1,"jsonrpc":"2.0"}' http://localhost:8545
 
-    curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0x2cd","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"]}],"id":1,"jsonrpc":"2.0"}' http://localhost:8545
+    {"id":5,"jsonrpc":"2.0","method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0x1aa","address":["0xD7600ae27C99988A6CD360234062b540F88ECA43"],"topics":[["0x82fe3a4fa49c6382d0c085746698ddbbafe6c2bf61285b19410644b5b26287c7"]]}]}
 
+    curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0x2cd","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"]}],"id":1,"jsonrpc":"2.0"}' http://localhost:9090/solana
+
+
+
+# curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0x2cd","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"]}],"id":1,"jsonrpc":"2.0"}' http://localhost:9090/solana
+{"jsonrpc": "2.0", "id": 1, "result": [{"blockNumber": "0x104", "transactionIndex": "0x0", "transactionLogIndex": "0x0", "logIndex": "0x0", "address": "0x0412c7c846bb6b7dc462cf6b453f76d8440b2609", "data": "0x0000000000000000000000000000000000000000000000000000000000000001", "transactionHash": "0x0469c85ce2c1288bab35eed1846e0857542a33d4c0421c175b7adc5f1052ffc2", "topics": ["0x02c7e81975f8edb86e2a0c038b7b86a49c744236abf0f6177ff5afc6986ab708", "0x0000000000000000000000000000000000000000000000000000000000000001", "0x000000000000000000000000bf660843528035a5a4921534e156a27e64b231fe"], "blockHash": "0x271a1e92bb3a41a310acb1d4e53a7a913f7f3588cf224f507d8f1e1905aa24ea"}]}
+
+# curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0xffff","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"],"topics":[["0x02c7e81975f8edb86e2a0c038b7b86a49c744236abf0f6177ff5afc6986ab708"]]}],"id":1,"jsonrpc":"2.0"}' http://localhost:9090/solana
+
+# curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0xffff","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"],"topics":[["0x0000000000000000000000000000000000000000000000000000000000000001"]]}],"id":1,"jsonrpc":"2.0"}' http://localhost:9090/solana
 
     */
 
+    let mut file0 = std::fs::OpenOptions::new().truncate(true).write(true).create(true).open("/rust_container_runner/docker_assets/requests.txt").unwrap();
+    let mut file1 = std::fs::OpenOptions::new().truncate(true).write(true).create(true).open("/rust_container_runner/docker_assets/responses.txt").unwrap();
+    use std::fmt::Write;
+    let requests = web30::JSON_RPC_REQUESTS.lock().unwrap();
+    let requests = requests.iter().fold(String::new(), |mut acc, (c, s)| {writeln!(acc, "{}\n{}", c, s).unwrap(); acc});
+    std::io::Write::write_all(&mut file0, requests.as_bytes()).unwrap();
+    drop(file0);
+    let responses = web30::JSON_RPC_RESPONSES.lock().unwrap();
+    let responses = responses.iter().fold(String::new(), |mut acc, (c, s)| {writeln!(acc, "{}\n{}", c, s).unwrap(); acc});
+    std::io::Write::write_all(&mut file1, responses.as_bytes()).unwrap();
+    drop(file1);
+
     dbg!();
-    let logs = web3
+    let _logs = web3
         .check_for_events(u256!(0), None, vec![gravity_address], vec![
             TRANSACTION_BATCH_EXECUTED_EVENT_SIG,
         ])
         .await
         .unwrap();
-    dbg!(logs);
+    let _logs = web3
+    .check_for_events(u256!(0), None, vec![gravity_address], vec![
+        SENT_TO_COSMOS_EVENT_SIG,
+    ])
+    .await
+    .unwrap();
+    let _logs = web3
+    .check_for_events(u256!(0), None, vec![gravity_address], vec![
+        ERC20_DEPLOYED_EVENT_SIG,
+    ])
+    .await
+    .unwrap();
+    let _logs = web3
+    .check_for_events(u256!(0), None, vec![gravity_address], vec![
+        LOGIC_CALL_EVENT_SIG,
+    ])
+    .await
+    .unwrap();
+    let _logs = web3
+    .check_for_events(u256!(0), None, vec![gravity_address], vec![
+        VALSET_UPDATED_EVENT_SIG,
+    ])
+    .await
+    .unwrap();
 }
 
 async fn wait_for_txids(txids: Vec<Result<Uint256, Web3Error>>, web3: &Web3) {
