@@ -339,13 +339,13 @@ pub async fn main() {
         .truncate(true)
         .write(true)
         .create(true)
-        .open("/rust_container_runner/docker_assets/requests_avax.txt")
+        .open("/rust_container_runner/docker_assets/requests.txt")
         .unwrap();
     let mut file1 = std::fs::OpenOptions::new()
         .truncate(true)
         .write(true)
         .create(true)
-        .open("/rust_container_runner/docker_assets/responses_avax.txt")
+        .open("/rust_container_runner/docker_assets/responses.txt")
         .unwrap();
     use std::fmt::Write;
     let requests = web30::JSON_RPC_REQUESTS.lock().unwrap();
