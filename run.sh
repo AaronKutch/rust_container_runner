@@ -42,9 +42,14 @@ PATH=$PATH:$HOME/.cargo/bin CROSS_COMPILE=$CROSS_COMPILE cargo build --release -
 # because the binaries are put in different directories depending on $RCR_TARGET, copy them to a common place
 cp $REPOFOLDER/target/$RCR_TARGET/release/rust_container_runner $DOCKERFOLDER/internal_runner
 
-export NEON_EVM_COMMIT="efaf1cca168284333adde179faf3dfc993c1ffc4"
-export PROXY_REVISION="e93af21dbf9596085a54495dfb53f5e166406299"
+# new
+export NEON_EVM_COMMIT="v0.14.1"
+export PROXY_REVISION="v0.14.5"
 export FAUCET_COMMIT="v0.12.0"
+# old
+# export NEON_EVM_COMMIT="efaf1cca168284333adde179faf3dfc993c1ffc4"
+# export PROXY_REVISION="e93af21dbf9596085a54495dfb53f5e166406299"
+# export FAUCET_COMMIT="v0.12.0"
 export USE_LOCAL_ARTIFACTS=${USE_LOCAL_ARTIFACTS:-0}
 export VOLUME_ARGS
 export RUN_ARGS
