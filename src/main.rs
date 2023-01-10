@@ -12,7 +12,7 @@ use ethers::{
 };
 use futures::future::join_all;
 use lazy_static::lazy_static;
-use log::{info, warn};
+use log::info;
 use web30::{client::Web3, jsonrpc::error::Web3Error, types::SendTxOption};
 
 lazy_static! {
@@ -213,69 +213,6 @@ pub async fn main() {
     //     .parse()
     //     .unwrap();
 
-    // block stimulator workaround
-    tokio::spawn(async move {
-        use std::str::FromStr;
-        // we need a duplicate `send_eth_bulk` that uses a different
-        // private key and does not wait on transactions, otherwise we
-        // conflict with the main runner's nonces and calculations
-        async fn send_eth_bulk2(amount: Uint256, destinations: &[EthAddress], web3: &Web3) {
-            let private_key: EthPrivateKey =
-                "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b"
-                    .to_owned()
-                    .parse()
-                    .unwrap();
-            let pub_key: EthAddress = private_key.to_address();
-            let net_version = web3.net_version().await.unwrap();
-            let mut nonce = web3.eth_get_transaction_count(pub_key).await.unwrap();
-            let mut transactions = Vec::new();
-            let gas_price: Uint256 = web3.eth_gas_price().await.unwrap();
-            let double = gas_price.checked_mul(u256!(2)).unwrap();
-            for address in destinations {
-                let t = Transaction {
-                    to: *address,
-                    nonce,
-                    gas_price: double,
-                    gas_limit: TEST_GAS_LIMIT,
-                    value: amount,
-                    data: Vec::new(),
-                    signature: None,
-                };
-                let t = t.sign(&private_key, Some(net_version));
-                transactions.push(t);
-                nonce = nonce.checked_add(u256!(1)).unwrap();
-            }
-            for tx in transactions {
-                // The problem that this is trying to solve, is that if we try and wait
-                // for the transaction in this thread, there are race conditions such
-                // that we can softlock. There are also problems with fluctuating gas
-                // prices and long block production times from batch tests that cause
-                // replacement errors. What we do is simply ignore the transaction ids
-                // and just send a warning if there is an error.
-                if let Err(e) = web3.eth_send_raw_transaction(tx.to_bytes().unwrap()).await {
-                    warn!("Block stimulator encountered transaction error: {}", e);
-                }
-            }
-        }
-
-        // repeatedly send to unrelated addresses
-        let web3 = Web3::new(ETH_NODE, Duration::from_secs(30));
-        for i in 0u64.. {
-            send_eth_bulk2(
-                u256!(1),
-                // alternate to reduce replacement errors
-                &if (i & 1) == 0 {
-                    [EthAddress::from_str("0x798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap()]
-                } else {
-                    [EthAddress::from_str("0xFf64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB").unwrap()]
-                },
-                &web3,
-            )
-            .await;
-            tokio::time::sleep(Duration::from_secs(4)).await;
-        }
-    });
-
     pub const TRANSACTION_BATCH_EXECUTED_EVENT_SIG: &str =
         "TransactionBatchExecutedEvent(uint256,address,uint256)";
 
@@ -318,7 +255,7 @@ pub async fn main() {
     /*
     # curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0xffff","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"],"topics":[["0x02c7e81975f8edb86e2a0c038b7b86a49c744236abf0f6177ff5afc6986ab708"]]}],"id":1,"jsonrpc":"2.0"}' http://proxy:9090/solana
 
-    # curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0xffff","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"],"topics":[["0x9e9794dbf94b0a0aa31a480f5b38550eda7f89115ac8fbf4953fa4dd219900c9"]]}],"id":1,"jsonrpc":"2.0"}' http://proxy:9090/solana
+    curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0xffff","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"],"topics":[["0x9e9794dbf94b0a0aa31a480f5b38550eda7f89115ac8fbf4953fa4dd219900c9"]]}],"id":1,"jsonrpc":"2.0"}' http://proxy:9090/solana
         */
 
     dbg!();

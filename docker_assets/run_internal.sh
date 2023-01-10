@@ -16,8 +16,6 @@ echo "waiting for faucet"
 until $(curl --output /dev/null --fail --silent -X POST -d '{"wallet": "0xBf660843528035a5A4921534E156a27e64B231fE", "amount": 100000000}' 'http://faucet:3333/request_neon'); do
     sleep 1
 done
-# request funds for block stimulator
-curl -X POST -d '{"wallet": "0x3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0", "amount": 100000000}' 'http://faucet:3333/request_neon'
 
 # geth --identity "GravityTestnet" \
 #     --nodiscover \
