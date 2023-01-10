@@ -316,9 +316,9 @@ pub async fn main() {
         .unwrap();
 
     /*
-    # curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0xffff","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"],"topics":[["0x02c7e81975f8edb86e2a0c038b7b86a49c744236abf0f6177ff5afc6986ab708"]]}],"id":1,"jsonrpc":"2.0"}' http://localhost:8545
+    # curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0xffff","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"],"topics":[["0x02c7e81975f8edb86e2a0c038b7b86a49c744236abf0f6177ff5afc6986ab708"]]}],"id":1,"jsonrpc":"2.0"}' http://proxy:9090/solana
 
-    # curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0xffff","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"],"topics":[["0x9e9794dbf94b0a0aa31a480f5b38550eda7f89115ac8fbf4953fa4dd219900c9"]]}],"id":1,"jsonrpc":"2.0"}' http://localhost:8545
+    # curl --header "content-type: application/json" --data '{"method":"eth_getLogs","params":[{"fromBlock":"0x0","toBlock":"0xffff","address":["0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"],"topics":[["0x9e9794dbf94b0a0aa31a480f5b38550eda7f89115ac8fbf4953fa4dd219900c9"]]}],"id":1,"jsonrpc":"2.0"}' http://proxy:9090/solana
         */
 
     dbg!();
