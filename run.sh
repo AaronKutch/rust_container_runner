@@ -42,13 +42,20 @@ PATH=$PATH:$HOME/.cargo/bin CROSS_COMPILE=$CROSS_COMPILE cargo build --release -
 # because the binaries are put in different directories depending on $RCR_TARGET, copy them to a common place
 cp $REPOFOLDER/target/$RCR_TARGET/release/rust_container_runner $DOCKERFOLDER/internal_runner
 
-export NEON_EVM_COMMIT="efaf1cca168284333adde179faf3dfc993c1ffc4"
-export PROXY_REVISION="e93af21dbf9596085a54495dfb53f5e166406299"
-export FAUCET_COMMIT="v0.12.0"
+# export NEON_EVM_COMMIT="efaf1cca168284333adde179faf3dfc993c1ffc4"
+# export PROXY_REVISION="e93af21dbf9596085a54495dfb53f5e166406299"
+# export FAUCET_COMMIT="v0.12.0"
+# export NEAR_CORE="nearprotocol/nearcore:1.31.0"
+export NEAR_ENV="localnet"
+export NEAR_URL=http://rust_test_runner_container:3030
 export USE_LOCAL_ARTIFACTS=${USE_LOCAL_ARTIFACTS:-0}
+# the locations of the container `.near`s are slightly different
+export HOME_CONFIG_VOLUME="${DIR}/docker_assets/near_config/.near:/home/.near"
+ROOT_CONFIG_VOLUME="${DIR}/docker_assets/near_config/.near:/root/.near"
+VOLUME_ARGS="${VOLUME_ARGS} -v ${ROOT_CONFIG_VOLUME}"
+# VOLUME_ARGS="${VOLUME_ARGS} --mount src=\"${DIR}/docker_assets/near_config/.near\",target=\"/home/.near\",type=bind"
 export VOLUME_ARGS
 export RUN_ARGS
-
 
 # Remove existing container instance
 set +e
@@ -61,13 +68,19 @@ docker network rm net
 set -e
 docker network create net
 
-# docker-compose -f docker-compose.yml build
+if [[ "${TEST_TYPE:-}" == "NO_SCRIPTS" ]]; then
+   docker run --name rust_test_runner_container --network net --hostname test $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS
+else
 
-docker build -t rust_test_runner_container $PLATFORM_CMD .
+   docker-compose -f docker-compose.yml build
 
-set +e
-# docker-compose -f docker-compose.yml up -d --force-recreate
-set -e
+   docker build -t rust_test_runner_container $PLATFORM_CMD .
 
-# Run new test container instance
-docker run --name rust_test_runner_container --network net --hostname test $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS
+   set +e
+   docker-compose -f docker-compose.yml up -d --force-recreate
+   set -e
+
+   # Run new test container instance
+   docker run --name rust_test_runner_container --network net --hostname test $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS
+
+fi

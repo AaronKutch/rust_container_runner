@@ -1,19 +1,18 @@
 #![allow(unused_must_use)]
-use std::{env, path::PathBuf, time::Duration};
+use std::{env, time::Duration};
 
 use clarity::{
-    abi::Token, address::Address as EthAddress, u256, PrivateKey as EthPrivateKey, Transaction,
-    Uint256,
+    address::Address as EthAddress, u256, PrivateKey as EthPrivateKey, Transaction, Uint256,
 };
-use ethers::{
+/*use ethers::{
     prelude::{ContractFactory, SignerMiddleware},
     signers::LocalWallet,
     solc::{Project, ProjectPathsConfig},
-};
+};*/
 use futures::future::join_all;
 use lazy_static::lazy_static;
-use log::{info, warn};
-use web30::{client::Web3, jsonrpc::error::Web3Error, types::SendTxOption};
+use log::info;
+use web30::{client::Web3, jsonrpc::error::Web3Error};
 
 lazy_static! {
     // this key is the private key for the public key defined in tests/assets/ETHGenesis.json
@@ -44,7 +43,7 @@ pub async fn main() {
 
     dbg!(*MINER_PRIVATE_KEY);
     dbg!(*MINER_ADDRESS);
-    let rpc_url = ETH_NODE;
+    //let rpc_url = ETH_NODE;
     // wait for the server to be ready
     /*for _ in 0..120 {
         if TcpStream::connect(rpc_host).await.is_ok() {
@@ -159,6 +158,7 @@ pub async fn main() {
         .await
     );*/
 
+    /*
     // test contract deploy
     let root = "/rust_container_runner/docker_assets/solidity/";
     //let root = "/home/aaron/rust_container_runner/docker_assets/solidity/";
@@ -212,7 +212,9 @@ pub async fn main() {
     // let gravity_address = "0x0412C7c846bb6b7DC462CF6B453f76D8440b2609"
     //     .parse()
     //     .unwrap();
+    */
 
+    /*
     // block stimulator workaround
     tokio::spawn(async move {
         use std::str::FromStr;
@@ -275,7 +277,9 @@ pub async fn main() {
             tokio::time::sleep(Duration::from_secs(4)).await;
         }
     });
+    */
 
+    /*
     pub const TRANSACTION_BATCH_EXECUTED_EVENT_SIG: &str =
         "TransactionBatchExecutedEvent(uint256,address,uint256)";
 
@@ -334,6 +338,7 @@ pub async fn main() {
         ])
         .await
         .unwrap();
+    */
 
     let mut file0 = std::fs::OpenOptions::new()
         .truncate(true)

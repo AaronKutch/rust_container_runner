@@ -3,47 +3,52 @@
 # so that database related folders are not spawning in the scripts folder
 pushd /
 
-# echo "waiting for neon to come online"
-# until $(curl --output /dev/null --fail --silent --header "content-type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' http://proxy:9090/solana); do
-#     sleep 1
-# done
-# echo "waiting for neon to sync"
-# until [ "$(curl -s --header "content-type: application/json" --data '{"id":1,"jsonrpc":"2.0","method":"eth_syncing","params":[]}' http://proxy:9090/solana)" == '{"jsonrpc": "2.0", "id": 1, "result": false}' ]; do
-#     sleep 1
-# done
-# # request funds for the test account
-# echo "waiting for faucet"
-# until $(curl --output /dev/null --fail --silent -X POST -d '{"wallet": "0xBf660843528035a5A4921534E156a27e64B231fE", "amount": 100000000}' 'http://faucet:3333/request_neon'); do
-#     sleep 1
-# done
-# # request funds for block stimulator
-# curl -X POST -d '{"wallet": "0x3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0", "amount": 100000000}' 'http://faucet:3333/request_neon'
 
-geth --identity "GravityTestnet" \
-    --nodiscover \
-    --networkid 15 \
-    init /rust_container_runner/docker_assets/ETHGenesis.json
+# we may not need nearup
+#RUN dnf install -y python3-pip
+#RUN pip3 install --user nearup
+#RUN mv ~/.local/bin/nearup /usr/local/bin/nearup
 
-geth --identity "GravityTestnet" --nodiscover \
-    --networkid 15 \
-    --mine \
-    --http \
-    --http.addr="0.0.0.0" \
-    --http.vhosts="*" \
-    --http.corsdomain="*" \
-    --miner.threads=1 \
-    --nousb \
-    --verbosity=5 \
-    --miner.etherbase=0xBf660843528035a5A4921534E156a27e64B231fE &> /rust_container_runner/docker_assets/geth.log &
+# note: we get the address from `aurora encode-address test.near`
+# which returns 0xCBdA96B3F2B8eb962f97AE50C3852CA976740e2B
+# there is also things like `get-balance` and `get-code`
+#
+# 0x56EFf90C050eb23446Cad8a8eF499769A1820146
 
-echo "waiting for geth to come online"
-until $(curl --output /dev/null --fail --silent --header "content-type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' http://localhost:8545); do
+export NEAR_ENV=localnet
+export NEAR_URL=http://localhost:3030
+
+# TODO I have run
+# cp ~/nearcore/target/quick-release/neard ~/rust_container_runner/docker_assets/neard
+
+# remove old files
+rm -rf /rust_container_runner/docker_assets/near_config/.near/*
+# this is what generates the config, genesis, and key files
+/rust_container_runner/docker_assets/neard init --chain-id 15
+/rust_container_runner/docker_assets/neard run & > /rust_container_runner/docker_assets/host_neard.log
+echo "waiting for neard to come online"
+until $(curl --output /dev/null --fail --silent http://localhost:3030/status); do
     sleep 1
 done
-echo "waiting for geth to sync"
-until [ "$(curl -s --header "content-type: application/json" --data '{"id":1,"jsonrpc":"2.0","method":"eth_syncing","params":[]}' http://localhost:8545)" == '{"jsonrpc":"2.0","id":1,"result":false}' ]; do
-    sleep 1
-done
+
+near create-account aurora.test.near --master-account=test.near --initial-balance 900000000
+
+# aurora `install` seems to have trouble, `near deploy` works
+near deploy --account-id=aurora.test.near --wasm-file=/rust_container_runner/docker_assets/localnet-release.wasm
+
+#aurora initialize --chain 15 --owner test.near
+#aurora --signer aurora.test.near --engine aurora.test.near install --chain 15 --owner test.near /rust_container_runner/docker_assets/localnet-release.wasm
+
+sleep infinity
+
+# echo "waiting for geth to come online"
+# until $(curl --output /dev/null --fail --silent --header "content-type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' http://localhost:8545); do
+#     sleep 1
+# done
+# echo "waiting for geth to sync"
+# until [ "$(curl -s --header "content-type: application/json" --data '{"id":1,"jsonrpc":"2.0","method":"eth_syncing","params":[]}' http://localhost:8545)" == '{"jsonrpc":"2.0","id":1,"result":false}' ]; do
+#     sleep 1
+# done
 
 RUST_LOG="INFO" RUST_BACKTRACE=full /rust_container_runner/docker_assets/internal_runner > /rust_container_runner/docker_assets/host_eth_rpc.log &
-sleep 10000
+sleep infinity
