@@ -34,6 +34,8 @@ services:
 
   database:
     container_name: "${NEAR_ENV:-testnet}_database"
+    networks:
+      - net
     image: auroraisnear/relayer-database
     # restart: unless-stopped
     ports:
@@ -43,6 +45,8 @@ services:
   indexer:
     container_name: "${NEAR_ENV:-testnet}_indexer"
     image: auroraisnear/relayer-endpoint
+    networks:
+      - net
     # restart: unless-stopped
     init: true
     depends_on:
@@ -55,13 +59,15 @@ services:
       - NEAR_URL=http://test:3030
     volumes:
       - ./docker_assets/aurora_config:/srv/aurora/relayer/config
-      - "${HOME_CONFIG_VOLUME}"
-    extra_hosts:
-      - host.docker.internal:host-gateway # See: https://stackoverflow.com/a/43541732
+      - "${NEAR_CONFIG_VOLUME}"
+    # extra_hosts:
+    #   - host.docker.internal:host-gateway # See: https://stackoverflow.com/a/43541732
     entrypoint: ["sh", "-c", "util/indexer/indexer | node lib/indexer_backend.js"]
   endpoint:
     container_name: "${NEAR_ENV:-testnet}_endpoint"
     image: auroraisnear/relayer-endpoint
+    networks:
+      - net
     # restart: unless-stopped
     init: true
     depends_on:
@@ -76,5 +82,5 @@ services:
       - '127.0.0.1:8545:8545'
     volumes:
       - ./docker_assets/aurora_config:/srv/aurora/relayer/config
-      - "${HOME_CONFIG_VOLUME}"
+      - "${NEAR_CONFIG_VOLUME}"
     entrypoint: ["node", "lib/index.js"]

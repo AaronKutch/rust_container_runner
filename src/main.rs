@@ -1,5 +1,5 @@
 #![allow(unused_must_use)]
-use std::{env, time::Duration};
+use std::{env, str::FromStr, time::Duration};
 
 use clarity::{
     address::Address as EthAddress, u256, PrivateKey as EthPrivateKey, Transaction, Uint256,
@@ -43,15 +43,7 @@ pub async fn main() {
 
     dbg!(*MINER_PRIVATE_KEY);
     dbg!(*MINER_ADDRESS);
-    //let rpc_url = ETH_NODE;
-    // wait for the server to be ready
-    /*for _ in 0..120 {
-        if TcpStream::connect(rpc_host).await.is_ok() {
-            break
-        }
-        sleep(Duration::from_millis(500)).await
-    }
-    let rpc = web30::jsonrpc::client::HttpClient::new(rpc_url);
+    let rpc = web30::jsonrpc::client::HttpClient::new(ETH_NODE);
 
     let methods = [
         //"accounts",
@@ -78,12 +70,12 @@ pub async fn main() {
     let res: Result<web30::types::SyncingStatus, Web3Error> = rpc
         .request_method("eth_syncing", Vec::<String>::new(), Duration::from_secs(10))
         .await;
-    dbg!(res);*/
+    dbg!(res);
 
-    //let web3 = Web3::new(rpc_url, Duration::from_secs(60));
-    // web3.wait_for_next_block(Duration::from_secs(300))
-    //     .await
-    //     .unwrap();
+    let web3 = Web3::new(ETH_NODE, Duration::from_secs(60));
+    web3.wait_for_next_block(Duration::from_secs(300))
+        .await
+        .unwrap();
 
     // starting address amount
     /*dbg!(
@@ -127,7 +119,7 @@ pub async fn main() {
 
     println!("{} txns failed", tot_failed);*/
 
-    /*dbg!(
+    dbg!(
         web3.eth_get_balance(
             EthAddress::from_str("0xBf660843528035a5A4921534E156a27e64B231fE").unwrap()
         )
@@ -156,7 +148,7 @@ pub async fn main() {
             EthAddress::from_str("0xb3d82b1367d362de99ab59a658165aff520cbd4d").unwrap()
         )
         .await
-    );*/
+    );
 
     /*
     // test contract deploy
@@ -344,13 +336,13 @@ pub async fn main() {
         .truncate(true)
         .write(true)
         .create(true)
-        .open("/rust_container_runner/docker_assets/requests_avax.txt")
+        .open("/rust_container_runner/docker_assets/requests.txt")
         .unwrap();
     let mut file1 = std::fs::OpenOptions::new()
         .truncate(true)
         .write(true)
         .create(true)
-        .open("/rust_container_runner/docker_assets/responses_avax.txt")
+        .open("/rust_container_runner/docker_assets/responses.txt")
         .unwrap();
     use std::fmt::Write;
     let requests = web30::JSON_RPC_REQUESTS.lock().unwrap();

@@ -49,10 +49,9 @@ cp $REPOFOLDER/target/$RCR_TARGET/release/rust_container_runner $DOCKERFOLDER/in
 export NEAR_ENV="localnet"
 export NEAR_URL=http://rust_test_runner_container:3030
 export USE_LOCAL_ARTIFACTS=${USE_LOCAL_ARTIFACTS:-0}
-# the locations of the container `.near`s are slightly different
-export HOME_CONFIG_VOLUME="${DIR}/docker_assets/near_config/.near:/home/.near"
-ROOT_CONFIG_VOLUME="${DIR}/docker_assets/near_config/.near:/root/.near"
-VOLUME_ARGS="${VOLUME_ARGS} -v ${ROOT_CONFIG_VOLUME}"
+export NEAR_CONFIG_VOLUME="${DIR}/docker_assets/near_config/.near:/.near"
+NEAR_CONFIG_VOLUME_V2="${DIR}/docker_assets/near_config/.near:/root/.near"
+VOLUME_ARGS="${VOLUME_ARGS} -v ${NEAR_CONFIG_VOLUME_V2}"
 # VOLUME_ARGS="${VOLUME_ARGS} --mount src=\"${DIR}/docker_assets/near_config/.near\",target=\"/home/.near\",type=bind"
 export VOLUME_ARGS
 export RUN_ARGS
@@ -66,21 +65,22 @@ set -e
 set +e
 docker network rm net
 set -e
-docker network create net
+docker network create net --internal
 
-if [[ "${TEST_TYPE:-}" == "NO_SCRIPTS" ]]; then
-   docker run --name rust_test_runner_container --network net --hostname test $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS
+if [[ "${TEST_TYPE:-}" == "CONTAINER_ONLY" ]]; then
+   docker run --name rust_test_runner_container --network net --hostname test $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS &
 else
 
    docker-compose -f docker-compose.yml build
 
    docker build -t rust_test_runner_container $PLATFORM_CMD .
 
+   # Run new test container instance
+   docker run --name rust_test_runner_container --network net --hostname test $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS &
+
+   sleep 10
+
    set +e
    docker-compose -f docker-compose.yml up -d --force-recreate
    set -e
-
-   # Run new test container instance
-   docker run --name rust_test_runner_container --network net --hostname test $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS
-
 fi
