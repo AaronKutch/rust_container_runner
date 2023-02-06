@@ -9,6 +9,7 @@ clarity = { git = "https://github.com/onomyprotocol/clarity.git", rev = "3e875b6
 env_logger = "0.9"
 # needed to remove a case where eth_estimateGas was called with 3 arguments
 #ethers = { git = "https://github.com/AaronKutch/ethers-rs", rev = "703a48472094359a48376407f0df7d396d8cfc6b", features = ["legacy", "solc-full"] }
+#aurora-engine = { path = "../aurora-engine/engine", default-features = false, features = ["std", "tracing"] }
 futures = "0.3"
 lazy_static = "1"
 log = "0.4"

@@ -35,7 +35,7 @@ until $(curl --output /dev/null --fail --silent http://localhost:3030/status); d
 done
 
 # curl --header "content-type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' http://localnet_endpoint:8545
-# curl --header "content-type: application/json" --data '{"method":"eth_getBalance","params":["0x56EFf90C050eb23446Cad8a8eF499769A1820146", "latest"],"id":1,"jsonrpc":"2.0"}' http://localnet_endpoint:8545
+# curl --header "content-type: application/json" --data '{"method":"eth_getBalance","params":["0xBf660843528035a5A4921534E156a27e64B231fE", "latest"],"id":1,"jsonrpc":"2.0"}' http://localnet_endpoint:8545
 
 near create-account aurora.test.near --master-account=test.near --initial-balance 900000000
 
@@ -44,6 +44,14 @@ near deploy --account-id=aurora.test.near --wasm-file=/rust_container_runner/doc
 
 #aurora initialize --chain 15 --owner test.near
 #aurora --signer aurora.test.near --engine aurora.test.near install --chain 15 --owner test.near /rust_container_runner/docker_assets/localnet-release.wasm
+
+# address, function 4 bytes (374aee9a?), nonce (0 initially), initial balance
+# aurora call 0xBf660843528035a5A4921534E156a27e64B231fE 374aee9a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000fffffffffffffff 0000000000000000000000000000000000000000000000000000000000000000
+
+#0000000000000000000000000000000000000000000000000000000000000000
+#0000000000000000000000000000000000000000000000000fffffffffffffff
+
+# near call aurora.test.near mint_account v2YIQ1KANaWkkhU04VaifmSyMf4AAAAAAAAAAAAAhOJQbOZ8 --accountId aurora.test.near --base64=true
 
 # echo "waiting for aurora-relayer to come online"
 until $(curl --output /dev/null --fail --silent --header "content-type: application/json" --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}' http://localnet_endpoint:8545); do

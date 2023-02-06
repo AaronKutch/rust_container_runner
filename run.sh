@@ -68,7 +68,7 @@ set -e
 docker network create net --internal
 
 if [[ "${TEST_TYPE:-}" == "CONTAINER_ONLY" ]]; then
-   docker run --name rust_test_runner_container --network net --hostname test $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS &
+   docker run --name rust_test_runner_container --network net --hostname test $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS
 else
 
    docker-compose -f docker-compose.yml build
