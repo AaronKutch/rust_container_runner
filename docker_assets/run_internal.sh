@@ -4,7 +4,9 @@
 pushd /
 
 # NOTE: use `develop` branch
-# in aurora-engine I first run `cargo make --profile mainnet build-test`
+# in aurora-engine I first run `cargo make --profile mainnet build-test` and copy the aurora-mainnet-test.wasm to docker_assets
+
+# use `master` branch of nearcore, run `make neard` and copy the `/target/release/neard` binary into `/docker_assets` (may need chmod)
 
 # we may not need nearup
 #RUN dnf install -y python3-pip
@@ -19,9 +21,6 @@ pushd /
 
 export NEAR_ENV=localnet
 export NEAR_URL=http://localhost:3030
-
-# TODO I have run
-# cp ~/nearcore/target/quick-release/neard ~/rust_container_runner/docker_assets/neard
 
 # remove old files
 rm -rf /rust_container_runner/docker_assets/near_config/.near/*

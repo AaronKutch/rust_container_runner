@@ -5,3 +5,4 @@
 !run_internal2.sh
 !avalanchego_configs
 !solidity/
+!aurora_config/
