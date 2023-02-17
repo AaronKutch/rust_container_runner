@@ -47,6 +47,8 @@ near deploy --account-id=aurora.test.near --wasm-file=/rust_container_runner/doc
 #aurora initialize --chain 15 --owner test.near
 #aurora --signer aurora.test.near --engine aurora.test.near install --chain 15 --owner test.near /rust_container_runner/docker_assets/aurora-mainnet-test.wasm
 
+near call aurora.test.near mint_account v2YIQ1KANaWkkhU04VaifmSyMf4AAAAAAAAAAAAAhOJQbOZ8 --accountId aurora.test.near --base64=true
+
 # address, function 4 bytes (374aee9a?), nonce (0 initially), initial balance
 # aurora call 0xBf660843528035a5A4921534E156a27e64B231fE 374aee9a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000fffffffffffffff 0000000000000000000000000000000000000000000000000000000000000000
 
