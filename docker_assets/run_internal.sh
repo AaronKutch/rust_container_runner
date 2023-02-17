@@ -3,6 +3,8 @@
 # so that database related folders are not spawning in the scripts folder
 pushd /
 
+# NOTE: use `develop` branch
+# in aurora-engine I first run `cargo make --profile mainnet build-test`
 
 # we may not need nearup
 #RUN dnf install -y python3-pip
@@ -40,10 +42,10 @@ done
 near create-account aurora.test.near --master-account=test.near --initial-balance 900000000
 
 # aurora `install` seems to have trouble, `near deploy` works
-near deploy --account-id=aurora.test.near --wasm-file=/rust_container_runner/docker_assets/localnet-release.wasm
+near deploy --account-id=aurora.test.near --wasm-file=/rust_container_runner/docker_assets/aurora-mainnet-test.wasm
 
 #aurora initialize --chain 15 --owner test.near
-#aurora --signer aurora.test.near --engine aurora.test.near install --chain 15 --owner test.near /rust_container_runner/docker_assets/localnet-release.wasm
+#aurora --signer aurora.test.near --engine aurora.test.near install --chain 15 --owner test.near /rust_container_runner/docker_assets/aurora-mainnet-test.wasm
 
 # address, function 4 bytes (374aee9a?), nonce (0 initially), initial balance
 # aurora call 0xBf660843528035a5A4921534E156a27e64B231fE 374aee9a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000fffffffffffffff 0000000000000000000000000000000000000000000000000000000000000000

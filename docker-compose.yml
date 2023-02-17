@@ -1,4 +1,4 @@
-# Modified from `proxy/docker-compose-test.yml` in `https://github.com/neonlabsorg/proxy-model.py`.
+# Modified from `https://github.com/aurora-is-near/aurora-relayer/blob/master/docker-compose.yaml`.
 
 version: "3"
 
