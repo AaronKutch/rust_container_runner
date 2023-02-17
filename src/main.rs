@@ -31,7 +31,7 @@ pub const TEST_GAS_LIMIT: Uint256 = u256!(2_000_000);
 // pub const ETH_NODE: &str = "http://proxy:9090/solana";
 // pub const CHAIN_ID: u64 = 111;
 
-pub const ETH_NODE: &str = "http://localhost:8545";
+pub const ETH_NODE: &str = "http://localnet_endpoint:8545";
 pub const CHAIN_ID: u64 = 15;
 
 pub const WALLET: &str = "b1bab011e03a9862664706fc3bbaa1b16651528e5f0e7fbfcbfdd8be302a13e7";

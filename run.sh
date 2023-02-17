@@ -75,12 +75,9 @@ else
 
    docker build -t rust_test_runner_container $PLATFORM_CMD .
 
-   # Run new test container instance
-   docker run --name rust_test_runner_container --network net --hostname test $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS &
-
-   sleep 10
-
    set +e
    docker-compose -f docker-compose.yml up -d --force-recreate
    set -e
+
+   docker run --name rust_test_runner_container --network net --hostname test $VOLUME_ARGS $PLATFORM_CMD --cap-add=NET_ADMIN -t rust_test_runner_container $RUN_ARGS
 fi
